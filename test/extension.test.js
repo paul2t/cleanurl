@@ -170,6 +170,30 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
     ok(`packaged file exists: ${file}`, fs.existsSync(path.join(root, file)));
   }
 
+  /*
+   * Permissions that only work for an unpacked extension are stripped on the
+   * way into the zip, but must stay on disk so loading this folder unpacked
+   * keeps working.
+   */
+  const shipped = packager.packagedManifest(manifest);
+  for (const permission of packager.DEV_ONLY_PERMISSIONS) {
+    ok(`"${permission}" is kept in the manifest on disk`,
+      manifest.permissions.includes(permission));
+    ok(`"${permission}" is stripped from the packaged manifest`,
+      !shipped.manifest.permissions.includes(permission));
+    ok(`"${permission}" is reported as removed`,
+      shipped.removed.includes(permission));
+  }
+  ok('stripping leaves every other permission alone',
+    manifest.permissions
+      .filter((p) => !packager.DEV_ONLY_PERMISSIONS.includes(p))
+      .every((p) => shipped.manifest.permissions.includes(p)));
+  ok('stripping changes nothing but the permission list',
+    JSON.stringify(Object.assign({}, shipped.manifest, { permissions: manifest.permissions })) ===
+    JSON.stringify(manifest));
+  ok('the source manifest object is not mutated',
+    manifest.permissions.includes('declarativeNetRequestFeedback'));
+
   /* The zip writer is hand-rolled, so prove an entry survives the round trip. */
   const archive = packager.zip([{ name: 'a/b.txt', data: Buffer.from('hello world') }]);
   eq('zip starts with a local file header', archive.readUInt32LE(0), 0x04034b50);

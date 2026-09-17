@@ -9,6 +9,10 @@
  * is left out - test/, tools/, package.json, and src/content-main.js, which
  * exists only as a source for the generated bundle.
  *
+ * The manifest is rewritten on the way in to drop permissions that only do
+ * anything for an unpacked extension - see DEV_ONLY_PERMISSIONS. The file on
+ * disk keeps them, so loading this folder unpacked still works.
+ *
  * The zip is written by hand because Node has no archiver and the extension
  * has no dependencies. Entries use a fixed timestamp, so packaging the same
  * tree twice produces byte-identical output.
@@ -20,6 +24,24 @@ const path = require('path');
 const zlib = require('zlib');
 
 const root = path.join(__dirname, '..');
+
+/*
+ * Chrome only fires declarativeNetRequest.onRuleMatchedDebug for an unpacked
+ * extension, so in a published build the permission does nothing except invite
+ * a reviewer to ask what it is for. src/background.js feature-detects the API,
+ * so dropping it just means the popup counter stops counting network-level
+ * cleanups and keeps counting in-page and copy ones.
+ */
+const DEV_ONLY_PERMISSIONS = ['declarativeNetRequestFeedback'];
+
+/** The manifest as it should ship, plus whatever was taken out of it. */
+function packagedManifest(manifest) {
+  const shipped = JSON.parse(JSON.stringify(manifest));
+  const removed = (shipped.permissions || []).filter((p) => DEV_ONLY_PERMISSIONS.includes(p));
+  shipped.permissions = (shipped.permissions || []).filter(
+    (p) => !DEV_ONLY_PERMISSIONS.includes(p));
+  return { manifest: shipped, removed: removed };
+}
 
 /* ---- reference walking -------------------------------------------------- */
 
@@ -175,9 +197,13 @@ function zip(entries) {
 function main() {
   const { manifest, files } = collectFiles();
 
+  const shipped = packagedManifest(manifest);
+
   const entries = files.map((name) => ({
     name: name.split(path.sep).join('/'),
-    data: fs.readFileSync(path.join(root, name)),
+    data: name === 'manifest.json'
+      ? Buffer.from(JSON.stringify(shipped.manifest, null, 2) + '\n', 'utf8')
+      : fs.readFileSync(path.join(root, name)),
   }));
 
   const dist = path.join(root, 'dist');
@@ -196,8 +222,12 @@ function main() {
   const skipped = fs.readdirSync(path.join(root, 'src'))
     .filter((f) => !files.includes('src/' + f));
   if (skipped.length) console.log('left out of src/: ' + skipped.join(', '));
+  if (shipped.removed.length) {
+    console.log('stripped from the packaged manifest: ' + shipped.removed.join(', ') +
+      ' (kept on disk for unpacked use)');
+  }
 }
 
-module.exports = { collectFiles, zip };
+module.exports = { collectFiles, zip, packagedManifest, DEV_ONLY_PERMISSIONS };
 
 if (require.main === module) main();

@@ -40,17 +40,11 @@ The extension does not block, throttle or inspect any request, does not read req
 
 ---
 
-## declarativeNetRequestFeedback (786/1000)
+## declarativeNetRequestFeedback
 
-> Consider removing this permission before submitting — see the note at the bottom of this file.
+**Not applicable.** `npm run package` strips this permission from the packaged manifest, so the published build does not request it and the dashboard will not ask for a justification. It stays in the manifest on disk, where loading the folder unpacked still gets the full popup counter.
 
-Used only for the counter in the extension's popup ("N links cleaned").
-
-onRuleMatchedDebug reports that a rule matched a request. A match alone does not mean anything was removed, since the rule condition is only a pre-filter, so the extension re-checks that URL against its own parameter list and increments the counter only when a parameter was genuinely removed. This keeps the number honest.
-
-The counter is two integers in chrome.storage.local. No URL, hostname, or request detail is stored, logged, or transmitted, and the extension makes no network requests of any kind.
-
-This API only fires for extensions loaded unpacked, so it is declared for users who install from source; in the published build it is inert and the counter simply reflects in-page and copy cleanups instead.
+If you ever ship it, the reason is: `onRuleMatchedDebug` is used only to count cleaned links for the popup, the count is two integers in `chrome.storage.local`, and no URL or request detail is stored or transmitted.
 
 ---
 
@@ -152,10 +146,10 @@ Note on "web history": the extension reads URLs in order to rewrite them, but ne
 
 ---
 
-## Before submitting: consider dropping declarativeNetRequestFeedback
+## Note on declarativeNetRequestFeedback
 
-`onRuleMatchedDebug` only fires for extensions loaded unpacked, so in a published build this permission does nothing. Reviewers reject permissions that the extension cannot use, and it is one more thing to justify.
+`onRuleMatchedDebug` only fires for extensions loaded unpacked, so in a published build the permission does nothing except invite a reviewer to ask what it is for.
 
-Removing it from `manifest.json` degrades gracefully — `countNetworkCleanups()` in `src/background.js` already feature-detects the API and returns quietly — and the only visible effect is that the popup's counter stops counting network-level cleanups, still counting in-page and copy ones.
+`npm run package` therefore removes it from the manifest it writes into the zip, while leaving the file on disk untouched. `countNetworkCleanups()` in `src/background.js` feature-detects the API and returns quietly when it is absent, so the only effect on the published build is that the popup counter stops counting network-level cleanups and keeps counting in-page and copy ones.
 
-Keep it only if you also load this extension unpacked and want the full count there.
+Add another name to `DEV_ONLY_PERMISSIONS` in `tools/package.js` to strip more.

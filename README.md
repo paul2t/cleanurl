@@ -154,7 +154,16 @@ npm run package
 ```
 
 Builds, tests, then writes `dist/cleanurl-<version>.zip` with `manifest.json`
-at its root - the shape the Chrome Web Store expects. The file list is walked
+at its root - the shape the Chrome Web Store expects.
+
+The manifest is rewritten on the way in to drop `declarativeNetRequestFeedback`.
+Chrome only fires `onRuleMatchedDebug` for an unpacked extension, so in a
+published build that permission does nothing except invite a reviewer to ask
+what it is for. The file on disk keeps it, so loading this folder unpacked still
+gets the full popup counter. Add to `DEV_ONLY_PERMISSIONS` in
+`tools/package.js` to strip more.
+
+The file list is walked
 out of the manifest (icons, content scripts, the service worker's
 `importScripts` arguments, and what the popup and options pages load), so
 `test/`, `tools/`, `package.json` and `src/content-main.js` - which exists only
