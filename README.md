@@ -156,9 +156,23 @@ npm run package:firefox  # dist/cleanurl-<version>.xpi  for addons.mozilla.org
 
 Both build, test, then write an archive with `manifest.json` at its root.
 
-### Firefox
+### Firefox and Firefox for Android
 
-One source tree, two manifests. The packager rewrites three things for Firefox:
+One source tree, two manifests. Android runs the same build: the manifest
+declares `gecko_android` with the same version floor, because
+`declarativeNetRequest` and `content_scripts` `world` both mirror their desktop
+versions there.
+
+One API does not exist on Android at all: **`menus`/`contextMenus`**. That
+matters more than a missing feature, because the listener is registered at the
+top level of the background script, so an unguarded reference throws during
+load and takes everything after it down - including the network rules, which
+work on Android perfectly well. `src/background.js` feature-detects it, and a
+test loads the background script with `chrome.contextMenus` deleted and asserts
+it still produces rules.
+
+So on Android you get the cleaning and the popup, but no right-click **Copy
+clean link** - there is no right-click menu to put it in. The packager rewrites three things for Firefox:
 
 - **`background`.** Firefox has no background service worker, and its event
   page has no `importScripts()` either, so the files the worker imports are

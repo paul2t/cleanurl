@@ -231,6 +231,12 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
    * match the no-collection answers given to the Chrome Web Store.
    */
   const dataPermissions = firefox.browser_specific_settings.gecko.data_collection_permissions;
+  const android = firefox.browser_specific_settings.gecko_android;
+  ok('firefox declares android compatibility', !!android);
+  eq('android uses the same version floor',
+    android && android.strict_min_version,
+    firefox.browser_specific_settings.gecko.strict_min_version);
+
   ok('firefox declares data collection permissions', !!dataPermissions);
   eq('firefox declares that it collects nothing',
     JSON.stringify(dataPermissions.required), JSON.stringify(['none']));
@@ -298,7 +304,8 @@ for (const file of fs.readdirSync(path.join(root, 'src')).filter((f) => f.endsWi
  * The rules the service worker hands to Chrome
  * ---------------------------------------------------------------- */
 
-function loadServiceWorker() {
+function loadServiceWorker(options) {
+  const omit = (options && options.omit) || [];
   const captured = { rules: null, removed: null };
   const noop = () => {};
   const listener = { addListener: noop };
@@ -339,6 +346,8 @@ function loadServiceWorker() {
     },
   };
 
+  for (const name of omit) delete sandbox.chrome[name];
+
   vm.runInContext(fs.readFileSync(path.join(root, 'src', 'background.js'), 'utf8'), context,
     { filename: 'background.js' });
   return { sandbox, captured };
@@ -347,6 +356,28 @@ function loadServiceWorker() {
 const { sandbox } = loadServiceWorker();
 const defaults = sandbox.CleanURLSettings.normalize(null);
 const rules = sandbox.buildRules(defaults);
+
+/*
+ * Firefox for Android has no menus API. The listener registration runs at the
+ * top level of the background script, so an unguarded reference would throw
+ * during load and take the network rules down with it - and those work on
+ * Android.
+ */
+{
+  let android = null;
+  let error = null;
+  try {
+    android = loadServiceWorker({ omit: ['contextMenus'] });
+  } catch (e) {
+    error = e.message;
+  }
+  ok('the background script survives without a menus API', !error, error);
+  if (android) {
+    const androidRules = android.sandbox.buildRules(
+      android.sandbox.CleanURLSettings.normalize(null));
+    ok('and still generates network rules on Android', androidRules.length > 0);
+  }
+}
 
 /* Every setting must be editable, or it silently becomes unreachable. */
 {

@@ -62,6 +62,12 @@ function forFirefox(shipped) {
     shipped.background = { scripts: [...workerReferences(worker), worker] };
   }
   shipped.browser_specific_settings = {
+    /*
+     * Android runs the same code. declarativeNetRequest and content_scripts
+     * world mirror the desktop versions there, so the floor is the same; the
+     * menus API does not exist on Android, which background.js guards for.
+     */
+    gecko_android: { strict_min_version: FIREFOX_MIN_VERSION },
     gecko: {
       id: GECKO_ID,
       strict_min_version: FIREFOX_MIN_VERSION,

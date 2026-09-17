@@ -229,6 +229,7 @@ const MENU_LINK = 'cleanurl-copy-link';
 const MENU_PAGE = 'cleanurl-copy-page';
 
 function createMenus() {
+  if (!chrome.contextMenus) return; // Firefox for Android has no menus API
   chrome.contextMenus.removeAll(() => {
     void chrome.runtime.lastError;
     chrome.contextMenus.create({
@@ -312,7 +313,15 @@ chrome.storage.onChanged.addListener((changes, area) => {
   });
 });
 
-chrome.contextMenus.onClicked.addListener(copyClean);
+/*
+ * Firefox for Android has no menus API at all. This runs at the top level, so
+ * an unguarded reference throws while the background script is still loading
+ * and takes everything after it down too - including the network rules, which
+ * work there perfectly well.
+ */
+if (chrome.contextMenus) {
+  chrome.contextMenus.onClicked.addListener(copyClean);
+}
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
   chrome.tabs.get(tabId, (tab) => {
