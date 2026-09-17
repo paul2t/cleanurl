@@ -7,7 +7,16 @@
  */
 'use strict';
 
-importScripts('rules.js', 'cleaner.js', 'settings.js');
+/*
+ * Chrome runs this as a service worker, where importScripts() loads the shared
+ * modules. Firefox has no background service workers: it runs the same file as
+ * an event page, which has no importScripts() either, so the Firefox build
+ * lists these files in background.scripts and the browser loads them in the
+ * same order before this one.
+ */
+if (typeof importScripts === 'function') {
+  importScripts('rules.js', 'cleaner.js', 'settings.js');
+}
 
 const RULES = globalThis.CLEANURL_RULES;
 const Clean = globalThis.CleanURL;

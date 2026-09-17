@@ -175,7 +175,7 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
    * way into the zip, but must stay on disk so loading this folder unpacked
    * keeps working.
    */
-  const shipped = packager.packagedManifest(manifest);
+  const shipped = packager.packagedManifest(manifest, 'chrome');
   for (const permission of packager.DEV_ONLY_PERMISSIONS) {
     ok(`"${permission}" is kept in the manifest on disk`,
       manifest.permissions.includes(permission));
@@ -193,6 +193,62 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
     JSON.stringify(manifest));
   ok('the source manifest object is not mutated',
     manifest.permissions.includes('declarativeNetRequestFeedback'));
+
+  /* ---------------------------------------------------------------- *
+   * The Firefox build
+   * ---------------------------------------------------------------- */
+
+  const firefox = packager.packagedManifest(manifest, 'firefox').manifest;
+  const worker = manifest.background.service_worker;
+
+  /*
+   * Firefox has no background service worker and no importScripts(), so what
+   * the worker imports has to be listed for the browser to load first, in the
+   * same order, with the worker last. This list is derived by parsing the
+   * importScripts() call: when that parse went wrong it produced a list
+   * holding only the worker, and the background script died on its first
+   * reference to a missing global.
+   */
+  eq('firefox loads the worker as an event page',
+    JSON.stringify(firefox.background),
+    JSON.stringify({ scripts: ['src/rules.js', 'src/cleaner.js', 'src/settings.js', worker] }));
+  ok('firefox background.scripts lists more than the worker itself',
+    firefox.background.scripts.length > 1, firefox.background.scripts.join(', '));
+  eq('the worker is loaded last', firefox.background.scripts.slice(-1)[0], worker);
+  ok('every firefox background script is packaged',
+    firefox.background.scripts.every((f) => files.includes(f)));
+  ok('firefox drops the service worker key', !firefox.background.service_worker);
+
+  ok('firefox declares a gecko id',
+    !!(firefox.browser_specific_settings && firefox.browser_specific_settings.gecko.id));
+  ok('firefox pins a minimum version for world: MAIN',
+    parseFloat(firefox.browser_specific_settings.gecko.strict_min_version) >= 128,
+    firefox.browser_specific_settings.gecko.strict_min_version);
+  ok('firefox drops the chrome version floor', !firefox.minimum_chrome_version);
+  ok('firefox strips the unpacked-only permission',
+    !firefox.permissions.includes('declarativeNetRequestFeedback'));
+  ok('firefox keeps every real permission',
+    manifest.permissions
+      .filter((p) => !packager.DEV_ONLY_PERMISSIONS.includes(p))
+      .every((p) => firefox.permissions.includes(p)));
+  eq('firefox keeps the same content scripts',
+    JSON.stringify(firefox.content_scripts), JSON.stringify(manifest.content_scripts));
+
+  ok('the chrome build is untouched by the firefox transform',
+    !shipped.manifest.browser_specific_settings &&
+    !!shipped.manifest.background.service_worker);
+  eq('targets have distinct extensions',
+    packager.TARGETS.chrome.extension + ',' + packager.TARGETS.firefox.extension, 'zip,xpi');
+
+  /*
+   * background.js must keep working as a service worker too: Chrome has no
+   * background.scripts, so the importScripts() call has to stay, guarded.
+   */
+  const workerSource = fs.readFileSync(path.join(root, worker), 'utf8');
+  ok('the worker still calls importScripts for chrome',
+    /importScripts\('rules\.js'/.test(workerSource));
+  ok('the importScripts call is guarded for firefox',
+    /typeof importScripts === 'function'/.test(workerSource));
 
   /* The zip writer is hand-rolled, so prove an entry survives the round trip. */
   const archive = packager.zip([{ name: 'a/b.txt', data: Buffer.from('hello world') }]);

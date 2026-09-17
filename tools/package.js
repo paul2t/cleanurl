@@ -1,6 +1,7 @@
 /*
- * Builds dist/cleanurl-<version>.zip, ready to upload to the Chrome Web Store.
- * Run with: npm run package
+ * Builds a browser package into dist/.
+ *   npm run package          -> cleanurl-<version>.zip for the Chrome Web Store
+ *   npm run package:firefox  -> cleanurl-<version>.xpi for addons.mozilla.org
  *
  * The file list is derived from manifest.json rather than hardcoded, by
  * following every reference out of it: icons, content scripts, the service
@@ -34,13 +35,54 @@ const root = path.join(__dirname, '..');
  */
 const DEV_ONLY_PERMISSIONS = ['declarativeNetRequestFeedback'];
 
-/** The manifest as it should ship, plus whatever was taken out of it. */
-function packagedManifest(manifest) {
-  const shipped = JSON.parse(JSON.stringify(manifest));
+/*
+ * Identity on addons.mozilla.org. Changing it after publishing creates a
+ * second, unrelated add-on rather than an update, so it is fixed here.
+ */
+const GECKO_ID = 'cleanurl@paul2t.github.io';
+
+/*
+ * content_scripts "world" needs Firefox 128. Below that Firefox ignores the
+ * key and runs the page-world bundle in the isolated world, where it patches
+ * its own copy of navigator.clipboard, reports every hook as installed, and so
+ * stops the share-field fallback from ever starting. A hard floor beats a
+ * degraded mode that reports itself as healthy.
+ */
+const FIREFOX_MIN_VERSION = '128.0';
+
+/*
+ * Firefox has no background service worker: the same file runs as an event
+ * page, which has no importScripts() either, so what the worker would import is
+ * listed for the browser to load first. Derived from the actual call, so the
+ * two cannot drift apart.
+ */
+function forFirefox(shipped) {
+  const worker = shipped.background && shipped.background.service_worker;
+  if (worker) {
+    shipped.background = { scripts: [...workerReferences(worker), worker] };
+  }
+  shipped.browser_specific_settings = {
+    gecko: { id: GECKO_ID, strict_min_version: FIREFOX_MIN_VERSION },
+  };
+  delete shipped.minimum_chrome_version;
+  return shipped;
+}
+
+const TARGETS = {
+  chrome: { extension: 'zip', transform: (m) => m },
+  firefox: { extension: 'xpi', transform: forFirefox },
+};
+
+/** The manifest as it should ship for a target, plus what was taken out. */
+function packagedManifest(manifest, target) {
+  const config = TARGETS[target || 'chrome'];
+  if (!config) throw new Error('unknown target: ' + target);
+  let shipped = JSON.parse(JSON.stringify(manifest));
   const removed = (shipped.permissions || []).filter((p) => DEV_ONLY_PERMISSIONS.includes(p));
   shipped.permissions = (shipped.permissions || []).filter(
     (p) => !DEV_ONLY_PERMISSIONS.includes(p));
-  return { manifest: shipped, removed: removed };
+  shipped = config.transform(shipped);
+  return { manifest: shipped, removed: removed, extension: config.extension };
 }
 
 /* ---- reference walking -------------------------------------------------- */
@@ -64,7 +106,15 @@ function pageReferences(pageRelative) {
 
 /** Files the service worker pulls in with importScripts(). */
 function workerReferences(workerRelative) {
-  const source = readText(workerRelative);
+  /*
+   * Comments are stripped first. The explanation above the call in
+   * background.js mentions importScripts() with empty parentheses, and
+   * matching that instead yields no dependencies at all - which shows up as a
+   * Firefox background.scripts list containing only the worker itself.
+   */
+  const source = readText(workerRelative)
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
   const dir = path.posix.dirname(workerRelative);
   const refs = [];
   const call = source.match(/importScripts\(([^)]*)\)/);
@@ -195,9 +245,14 @@ function zip(entries) {
 /* ---- main --------------------------------------------------------------- */
 
 function main() {
+  const target = process.argv[2] || 'chrome';
+  if (!TARGETS[target]) {
+    throw new Error('unknown target "' + target + '"; expected one of ' +
+      Object.keys(TARGETS).join(', '));
+  }
   const { manifest, files } = collectFiles();
 
-  const shipped = packagedManifest(manifest);
+  const shipped = packagedManifest(manifest, target);
 
   const entries = files.map((name) => ({
     name: name.split(path.sep).join('/'),
@@ -208,7 +263,7 @@ function main() {
 
   const dist = path.join(root, 'dist');
   fs.mkdirSync(dist, { recursive: true });
-  const output = path.join(dist, `cleanurl-${manifest.version}.zip`);
+  const output = path.join(dist, `cleanurl-${manifest.version}.${shipped.extension}`);
   const archive = zip(entries);
   fs.writeFileSync(output, archive);
 
@@ -216,8 +271,8 @@ function main() {
   for (const entry of entries) {
     console.log(`  ${entry.name.padEnd(width)}  ${String(entry.data.length).padStart(7)} B`);
   }
-  console.log(`\n${entries.length} files -> dist/cleanurl-${manifest.version}.zip ` +
-    `(${archive.length} bytes)`);
+  console.log(`\n${entries.length} files -> ${path.basename(output)} ` +
+    `(${archive.length} bytes) for ${target}`);
 
   const skipped = fs.readdirSync(path.join(root, 'src'))
     .filter((f) => !files.includes('src/' + f));
@@ -228,6 +283,6 @@ function main() {
   }
 }
 
-module.exports = { collectFiles, zip, packagedManifest, DEV_ONLY_PERMISSIONS };
+module.exports = { collectFiles, zip, packagedManifest, DEV_ONLY_PERMISSIONS, TARGETS };
 
 if (require.main === module) main();

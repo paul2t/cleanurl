@@ -150,11 +150,32 @@ npm test
 ## Packaging
 
 ```
-npm run package
+npm run package          # dist/cleanurl-<version>.zip  for the Chrome Web Store
+npm run package:firefox  # dist/cleanurl-<version>.xpi  for addons.mozilla.org
 ```
 
-Builds, tests, then writes `dist/cleanurl-<version>.zip` with `manifest.json`
-at its root - the shape the Chrome Web Store expects.
+Both build, test, then write an archive with `manifest.json` at its root.
+
+### Firefox
+
+One source tree, two manifests. The packager rewrites three things for Firefox:
+
+- **`background`.** Firefox has no background service worker, and its event
+  page has no `importScripts()` either, so the files the worker imports are
+  listed in `background.scripts` for the browser to load first, worker last.
+  That list is parsed out of the actual `importScripts()` call so it cannot
+  drift; `src/background.js` guards the call with
+  `typeof importScripts === 'function'` and works either way.
+- **`browser_specific_settings.gecko`.** An add-on id, without which
+  `storage.sync` does not work and AMO cannot sign the build.
+- **`strict_min_version: "128.0"`.** `content_scripts` `world` needs Firefox
+  128. Below that Firefox ignores the key and runs the page-world bundle in the
+  isolated world, where it patches its own copy of `navigator.clipboard`,
+  reports every hook as installed, and so stops the share-field fallback from
+  ever starting. A hard floor beats a degraded mode that reports itself healthy.
+
+`declarativeNetRequest` itself needs only Firefox 113, so the floor is about
+the clipboard hook rather than the core cleaning.
 
 The manifest is rewritten on the way in to drop `declarativeNetRequestFeedback`.
 Chrome only fires `onRuleMatchedDebug` for an unpacked extension, so in a
