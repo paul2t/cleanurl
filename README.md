@@ -147,6 +147,31 @@ npm test
 
 `npm run icons` regenerates `icons/*.png` from `tools/make-icons.js`.
 
+## Packaging
+
+```
+npm run package
+```
+
+Builds, tests, then writes `dist/cleanurl-<version>.zip` with `manifest.json`
+at its root - the shape the Chrome Web Store expects. The file list is walked
+out of the manifest (icons, content scripts, the service worker's
+`importScripts` arguments, and what the popup and options pages load), so
+`test/`, `tools/`, `package.json` and `src/content-main.js` - which exists only
+to feed the generated bundle - are left out without a hand-maintained list to
+drift. Output is reproducible: the same tree packs to the same bytes.
+
+There is no command that produces a Web Store submission directly; you upload
+that zip. A `.crx` comes from Chrome itself:
+
+```
+chrome.exe --pack-extension=. --pack-extension-key=key.pem
+```
+
+but Chrome refuses to install a `.crx` from outside the Web Store, so that is
+only useful for enterprise policy deployment. For local use, **Load unpacked**
+on this folder.
+
 ## Permissions
 
 `<all_urls>` is unavoidable: `declarativeNetRequest` will only *redirect* a

@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const zlib = require('zlib');
 
 const root = path.join(__dirname, '..');
 let passed = 0;
@@ -142,6 +143,47 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
   for (const name of builder.SOURCES) {
     ok(`the bundle contains src/${name}`, onDisk.includes(`/* ---- src/${name} `));
   }
+}
+
+/* ---------------------------------------------------------------- *
+ * Packaging ships what the manifest reaches, and nothing else
+ * ---------------------------------------------------------------- */
+
+{
+  const packager = require('../tools/package.js');
+  const { files } = packager.collectFiles();
+
+  ok('packages the manifest itself', files.includes('manifest.json'));
+  ok('packages the page-world bundle', files.includes('src/page-world.js'));
+  ok('packages the popup with its scripts',
+    ['src/popup.html', 'src/popup.js', 'src/settings.js'].every((f) => files.includes(f)));
+  ok('packages the service worker and what it importScripts',
+    ['src/background.js', 'src/cleaner.js', 'src/rules.js'].every((f) => files.includes(f)));
+  ok('packages every icon',
+    Object.values(manifest.icons).every((icon) => files.includes(icon)));
+  ok('leaves development files out',
+    !files.some((f) => f.startsWith('test/') || f.startsWith('tools/') || f === 'package.json'),
+    files.filter((f) => f.startsWith('test/') || f.startsWith('tools/')).join(', '));
+  ok('leaves sources that only feed the bundle out',
+    !files.includes('src/content-main.js'));
+  for (const file of files) {
+    ok(`packaged file exists: ${file}`, fs.existsSync(path.join(root, file)));
+  }
+
+  /* The zip writer is hand-rolled, so prove an entry survives the round trip. */
+  const archive = packager.zip([{ name: 'a/b.txt', data: Buffer.from('hello world') }]);
+  eq('zip starts with a local file header', archive.readUInt32LE(0), 0x04034b50);
+  eq('zip ends with an end-of-central-directory record',
+    archive.readUInt32LE(archive.length - 22), 0x06054b50);
+  const nameLength = archive.readUInt16LE(26);
+  const extraLength = archive.readUInt16LE(28);
+  const compressed = archive.readUInt32LE(18);
+  const start = 30 + nameLength + extraLength;
+  eq('zip stores the entry path with forward slashes',
+    archive.subarray(30, 30 + nameLength).toString(), 'a/b.txt');
+  eq('zip round-trips its payload',
+    zlib.inflateRawSync(archive.subarray(start, start + compressed)).toString(),
+    'hello world');
 }
 
 /* ---------------------------------------------------------------- *
