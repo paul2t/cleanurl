@@ -472,7 +472,10 @@
 
   /** Builds `name => shouldRemove` for a given host. */
   function buildMatcher(host, settings) {
-    const key = normalizeHost(host) + ' ' + settingsKey(settings);
+    // A NUL separator cannot occur in a hostname or a settings key, so the
+    // cache key is unambiguous. Written as an escape: a literal NUL byte in
+    // the source makes git treat the file as binary.
+    const key = normalizeHost(host) + '\u0000' + settingsKey(settings);
     const cached = matcherCache.get(key);
     if (cached) return cached;
 
