@@ -1,6 +1,6 @@
 {
   "name": "cleanurl",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Chrome extension that strips campaign trackers and share IDs from URLs before pages load, and from links you copy.",
   "scripts": {
