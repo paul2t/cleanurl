@@ -445,6 +445,28 @@
     return false;
   }
 
+  /*
+   * Origins Chrome reserves for itself: extensions may not run content scripts
+   * there and declarativeNetRequest rules do not apply, so nothing this
+   * extension does can reach them. Worth naming, because the symptom is
+   * identical to a bug and the advice for a bug ("reload the page") is wrong.
+   */
+  const BROWSER_RESTRICTED = [
+    { host: 'chromewebstore.google.com' },
+    { host: 'chrome.google.com', path: '/webstore' },
+  ];
+
+  function isBrowserRestricted(url) {
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch (e) {
+      return false;
+    }
+    return BROWSER_RESTRICTED.some((entry) => hostMatches(parsed.hostname, entry.host) &&
+      (!entry.path || parsed.pathname.startsWith(entry.path)));
+  }
+
   function isAllowlisted(host, allowlist) {
     if (!allowlist || !allowlist.length) return false;
     return allowlist.some((d) => hostMatches(host, d));
@@ -751,6 +773,7 @@
     cleanHtml: cleanHtml,
     hostMatches: hostMatches,
     isAllowlisted: isAllowlisted,
+    isBrowserRestricted: isBrowserRestricted,
     normalizeHost: normalizeHost,
   };
 

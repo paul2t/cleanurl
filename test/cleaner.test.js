@@ -226,6 +226,30 @@ check('cleanUrl reports what it removed',
   Clean.cleanUrl('https://example.com/?utm_source=x&gclid=y').removed.join(','), 'utm_source,gclid');
 
 /* ---------------------------------------------------------------- *
+ * Pages Chrome reserves for itself
+ * ---------------------------------------------------------------- */
+for (const restricted of [
+  'https://chromewebstore.google.com/detail/abc?utm_source=item-share-cb',
+  'https://chromewebstore.google.com/',
+  'https://chrome.google.com/webstore/detail/abc',
+]) {
+  check(`restricted: ${restricted}`, Clean.isBrowserRestricted(restricted), true);
+}
+for (const ordinary of [
+  'https://chrome.google.com/something-else',
+  'https://google.com/search?q=x',
+  'https://example.com/chromewebstore.google.com',
+  'not a url',
+]) {
+  check(`not restricted: ${ordinary}`, Clean.isBrowserRestricted(ordinary), false);
+}
+
+/* The rules still describe what would come off, for the popup to show. */
+check('a restricted url is still analysed',
+  Clean.cleanUrl('https://chromewebstore.google.com/detail/abc?utm_source=item-share-cb').url,
+  'https://chromewebstore.google.com/detail/abc');
+
+/* ---------------------------------------------------------------- *
  * Guard rails: things that must never be stripped
  * ---------------------------------------------------------------- */
 for (const param of ['code', 'state', 'token', 'access_token', 'id_token', 'q',
