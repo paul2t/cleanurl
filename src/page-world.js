@@ -682,21 +682,29 @@
   /**
    * Rewrites every URL found in a block of text, leaving everything else
    * (including surrounding punctuation) byte for byte identical.
+   *
+   * @returns {{text: string, changed: boolean, count: number, removed: string[]}}
+   *          `removed` is every parameter name dropped, in order and without
+   *          repeats, so a caller can say what it actually did.
    */
   function cleanText(text, options) {
     if (typeof text !== 'string' || text.indexOf('http') === -1) {
-      return { text: text, changed: false, count: 0 };
+      return { text: text, changed: false, count: 0, removed: [] };
     }
     let count = 0;
+    const removed = [];
     const output = text.replace(URL_IN_TEXT, (match) => {
       const candidate = trimTrailingPunctuation(match);
       const tail = match.slice(candidate.length);
       const cleaned = cleanUrl(candidate, options);
       if (!cleaned.changed) return match;
       count++;
+      for (const name of cleaned.removed) {
+        if (removed.indexOf(name) === -1) removed.push(name);
+      }
       return cleaned.url + tail;
     });
-    return { text: output, changed: count > 0, count: count };
+    return { text: output, changed: count > 0, count: count, removed: removed };
   }
 
   /**

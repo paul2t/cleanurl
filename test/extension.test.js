@@ -34,6 +34,27 @@ eq('manifest version 3', manifest.manifest_version, 3);
 ok('declares declarativeNetRequest', manifest.permissions.includes('declarativeNetRequest'));
 ok('declares host permissions', manifest.host_permissions.includes('<all_urls>'));
 
+/* The popup's "Clean clipboard link" button cannot read anything without it. */
+{
+  const popup = fs.readFileSync(path.join(root, manifest.action.default_popup), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'src/popup.js'), 'utf8');
+  const readsClipboard = script.includes('clipboard.readText');
+  ok('the popup has a clean-clipboard button',
+    /<button[^>]*id="clean-clipboard"/.test(popup));
+  ok('reading the clipboard is backed by the permission',
+    !readsClipboard || manifest.permissions.includes('clipboardRead'));
+}
+
+/* The popup's "Clean clipboard link" button cannot read anything without it. */
+{
+  const popup = fs.readFileSync(path.join(root, manifest.action.default_popup), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'src/popup.js'), 'utf8');
+  const readsClipboard = script.includes('clipboard.readText');
+  ok('the popup offers a clipboard cleanup', popup.includes('id="clean-clipboard"'));
+  ok('reading the clipboard is backed by the permission',
+    !readsClipboard || manifest.permissions.includes('clipboardRead'));
+}
+
 const referenced = [
   manifest.background.service_worker,
   manifest.action.default_popup,

@@ -15,6 +15,9 @@
     stats: document.getElementById('stats'),
     resetStats: document.getElementById('reset-stats'),
     diag: document.getElementById('diag'),
+    cleanClipboard: document.getElementById('clean-clipboard'),
+    clip: document.getElementById('clip'),
+    clipUrl: document.getElementById('clip-url'),
   };
 
   let settings = null;
@@ -142,6 +145,68 @@
       el.copy.textContent = 'Copy failed';
     }
   });
+
+  function showClipboard(state, message, url) {
+    el.clip.hidden = false;
+    el.clip.className = state;
+    el.clip.textContent = message;
+    el.clipUrl.hidden = !url;
+    el.clipUrl.textContent = url || '';
+  }
+
+  /*
+   * Cleans whatever link is on the clipboard right now, for a link that was
+   * copied somewhere the extension could not reach - another browser, a chat
+   * app, Chrome's own "Copy link address". An explicit request, so it runs
+   * even when the automatic passes are off; only the allowlist still applies.
+   */
+  async function cleanClipboardLink() {
+    el.cleanClipboard.disabled = true;
+    try {
+      let text;
+      try {
+        text = await navigator.clipboard.readText();
+      } catch (e) {
+        showClipboard('warn', 'Could not read the clipboard. Click inside the ' +
+          'popup first, then try again.');
+        return;
+      }
+
+      if (!text || !text.trim()) {
+        showClipboard('warn', 'The clipboard is empty.');
+        return;
+      }
+
+      const result = Clean.cleanText(text, Object.assign({}, settings, { enabled: true }));
+
+      if (!result.changed) {
+        showClipboard('', /https?:\/\//i.test(text)
+          ? 'That link is already clean.'
+          : 'No link found in the clipboard.');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(result.text);
+      } catch (e) {
+        showClipboard('warn', 'Cleaned it, but could not write it back to the ' +
+          'clipboard.', result.text);
+        return;
+      }
+
+      const what = result.count > 1 ? `${result.count} links` : 'Link';
+      showClipboard('done',
+        `${what} cleaned: removed ${result.removed.join(', ')}.`,
+        result.count === 1 ? result.text : '');
+      chrome.runtime.sendMessage({ type: 'report', kind: 'copy', count: result.count },
+        () => void chrome.runtime.lastError);
+      setTimeout(renderStats, 100);
+    } finally {
+      el.cleanClipboard.disabled = false;
+    }
+  }
+
+  el.cleanClipboard.addEventListener('click', cleanClipboardLink);
 
   el.options.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();

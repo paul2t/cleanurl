@@ -211,6 +211,14 @@ text('text with no urls is untouched',
   'nothing to do here',
   'nothing to do here');
 
+check('cleanText reports every parameter it dropped, without repeats',
+  Clean.cleanText('https://example.com/?utm_source=x&gclid=y then ' +
+                  'https://other.example/?utm_source=z').removed.join(','),
+  'utm_source,gclid');
+
+check('cleanText reports nothing removed when it changed nothing',
+  Clean.cleanText('https://example.com/clean').removed.length, 0);
+
 check('cleanText counts rewrites',
   Clean.cleanText('https://example.com/?utm_source=x and https://example.com/?gclid=y').count, 2);
 

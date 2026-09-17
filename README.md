@@ -101,6 +101,15 @@ Right-click the toolbar icon → **Options**, or open the popup and hit
 The popup shows what would be stripped from the current page and offers a
 one-click clean copy.
 
+It also has a **Clean clipboard link** button. Press it and whatever link is on
+the clipboard right now is rewritten in place, with a line underneath saying
+which parameters came off — or that there was nothing to do. It is for links
+copied somewhere the extension could not reach: another browser, a chat app,
+Chrome's own *Copy link address*. Being an explicit action it runs even when
+the automatic passes are switched off; only the allowlist still applies. If the
+clipboard holds a block of text, every link in it is cleaned and the rest is
+left byte for byte identical.
+
 ## Adding rules
 
 Everything lives in [`src/rules.js`](src/rules.js). Add a global parameter only
@@ -142,9 +151,14 @@ npm test
 
 `<all_urls>` is unavoidable: `declarativeNetRequest` will only *redirect* a
 request when the extension has host access to it, and the copy interception has
-to be present wherever a share button is. Nothing is sent anywhere — the rules
-are a static file in this folder and the only stored state is your settings plus
-two counters.
+to be present wherever a share button is.
+
+`clipboardRead` ("Read data you copy and paste") exists solely for the popup's
+**Clean clipboard link** button, and the clipboard is only ever read when you
+press it — never in the background, and never by a content script.
+
+Nothing is sent anywhere — the rules are a static file in this folder and the
+only stored state is your settings plus two counters.
 
 ## A copy came out dirty
 
