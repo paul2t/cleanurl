@@ -20,6 +20,66 @@ grep -rnE "(src|href)=\"https?:" src/*.html
 
 ---
 
+## Summary (the 132-character field)
+
+Pick one. Counts are in the check below.
+
+1. Removes tracking parameters and share IDs from links before they load, and from links you copy.
+2. Strips utm_source, gclid, fbclid and share IDs out of URLs you open and URLs you copy.
+3. Cleans tracking junk out of links automatically, and out of anything you copy.
+
+Suggested: 1. It says what happens and where, without jargon a non-technical reader would skip.
+
+---
+
+## Detailed description
+
+CleanURL removes tracking parameters and share identifiers from the links you open and the links you copy.
+
+A link from a share button or an ad usually carries more than the address of the page. "utm_source" and "utm_campaign" record which campaign sent you. "gclid", "fbclid" and "msclkid" tie your visit to an ad click. YouTube's "si", Instagram's "igsh" and Spotify's "si" identify the person who shared the link with you. None of it is needed to open the page.
+
+WHAT IT DOES
+
+Cleans links before they load. The rewrite happens on the request itself, so the tracking parameters never reach the site, and never appear in your address bar or your history.
+
+Cleans links when you copy them. Share panel "Copy link" buttons, Ctrl+C over a selected link, a page's own copy button, and dragging a link all produce a clean URL.
+
+Adds "Copy clean link" to the right-click menu, for a link or for the page you are on.
+
+Cleans the clipboard on demand. One button in the popup rewrites a link you have already copied, which covers links copied in another browser or app, or with Chrome's own "Copy link address" that an extension cannot intercept.
+
+WHAT IT REMOVES
+
+Around 170 parameters on every site, including utm_*, gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid, mc_cid, mkt_tok, and HubSpot, Klaviyo and Matomo tags.
+
+Share and tracking identifiers for around 28 sites: YouTube si and pp, Instagram and Threads igsh, X s and t, TikTok's share_* set, Reddit share_id, Spotify si, LinkedIn trk, Facebook mibextid, Amazon pd_rd_* and pf_rd_*, plus eBay, AliExpress, Bilibili, Etsy, Steam, Twitch and others.
+
+Affiliate tags are deliberately left alone. They pay whoever shared the link, so removing them is your decision rather than a default. There is a switch if you want it.
+
+So is anything a site needs to work. Sign-in and session parameters such as code, state, token and redirect_uri, and ordinary ones like q, v, id and page, are never touched.
+
+SETTINGS
+
+Switch any of the cleaning passes off on its own. Leave chosen sites alone entirely, with a one-click toggle in the popup. Add your own parameters to remove, with * wildcards. Keep a parameter that a site turns out to need.
+
+WHAT IT DOES NOT DO
+
+This is not an ad blocker or an anti-tracking suite. It does not block requests, scripts, cookies or fingerprinting, and it will not stop a site knowing you visited. It edits URLs, and that is all it does.
+
+PRIVACY
+
+No data is collected. The extension makes no network request of any kind, contacts no server, and contains no analytics. The list of parameters it removes is a plain file inside the extension, not something fetched or updated remotely. The only things stored are your settings and two counters, and they stay on your device.
+
+It asks for access to all sites because tracking parameters turn up on links to any domain, including small and personal ones, and because a URL can only be rewritten before it loads if the extension has access to it.
+
+---
+
+## Category
+
+Privacy & Security is the better fit than Tools: the listing is about what leaves your browser, and reviewers read the category alongside the single-purpose statement.
+
+---
+
 ## Single purpose (731/1000)
 
 CleanURL removes tracking parameters and share identifiers from URLs.
