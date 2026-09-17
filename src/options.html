@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CleanURL settings</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --fg: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #4f46e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16171a;
+      --card: #1f2024;
+      --fg: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #34363c;
+      --accent: #818cf8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 20px 64px;
+    background: var(--bg); color: var(--fg);
+    font: 14px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 680px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  header img { width: 32px; height: 32px; }
+  h1 { font-size: 20px; margin: 0; }
+  .lede { color: var(--muted); margin: 0 0 24px; }
+  section {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 4px 18px; margin-bottom: 16px;
+  }
+  h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin: 18px 0 10px;
+  }
+  .field { display: flex; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+  h2 + .field { border-top: 0; }
+  .field > input[type=checkbox] { margin: 3px 0 0; width: 16px; height: 16px; flex: none; accent-color: var(--accent); }
+  .field label { font-weight: 500; display: block; cursor: pointer; }
+  .field p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+  .block { padding: 14px 0; border-top: 1px solid var(--line); }
+  .block > label { font-weight: 500; display: block; margin-bottom: 4px; }
+  .block p { margin: 0 0 8px; color: var(--muted); font-size: 12.5px; }
+  textarea {
+    width: 100%; min-height: 78px; padding: 9px 10px; resize: vertical;
+    border: 1px solid var(--line); border-radius: 7px;
+    background: var(--bg); color: var(--fg);
+    font: 12.5px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .coverage { columns: 2; column-gap: 24px; margin: 0 0 16px; padding: 0; list-style: none; font-size: 12.5px; }
+  .coverage li { break-inside: avoid; color: var(--muted); padding: 1px 0; }
+  .coverage b { color: var(--fg); font-weight: 500; }
+  footer {
+    position: sticky; bottom: 0; display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; margin-top: 20px;
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+  }
+  button {
+    padding: 8px 14px; border: 1px solid var(--line); border-radius: 7px;
+    background: var(--card); color: var(--fg); font: inherit; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  #saved { color: #16a34a; font-size: 12.5px; opacity: 0; transition: opacity .2s; }
+  #saved.show { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="../icons/icon-48.png" alt="">
+    <h1>CleanURL</h1>
+  </header>
+  <p class="lede">Trackers are stripped from the request before the page loads, and from links as you copy them.</p>
+
+  <section>
+    <h2>Cleaning</h2>
+    <div class="field">
+      <input type="checkbox" id="enabled">
+      <div>
+        <label for="enabled">Enable CleanURL</label>
+        <p>Turns every rule below on or off.</p>
+      </div>
+    </div>
+    <div class="field">
+      <input type="checkbox" id="cleanAddressBar">
+      <div>
+        <label for="cleanAddressBar">Clean the address bar</label>
+        <p>Tidies what is left after the page loads, including trackers a site adds to the URL itself.</p>
+      </div>
+    </div>
+    <div class="field">
+      <input type="checkbox" id="cleanCopies">
+      <div>
+        <label for="cleanCopies">Clean copied links</label>
+        <p>Covers share buttons, right-click copy, Ctrl+C over selected text, and drag and drop.</p>
+      </div>
+    </div>
+    <div class="field">
+      <input type="checkbox" id="unwrapRedirects">
+      <div>
+        <label for="unwrapRedirects">Unwrap redirect links</label>
+        <p>Turns <code>google.com/url?q=…</code> and <code>l.instagram.com/?u=…</code> into the destination when copied.</p>
+      </div>
+    </div>
+    <div class="field">
+      <input type="checkbox" id="removeAffiliate">
+      <div>
+        <label for="removeAffiliate">Also remove affiliate tags</label>
+        <p>Off by default: these pay the person who shared the link, so removing them is a choice rather than a fix.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Exceptions</h2>
+    <div class="block">
+      <label for="allowlist">Sites to leave alone</label>
+      <p>One domain per line. Subdomains are included.</p>
+      <textarea id="allowlist" spellcheck="false" placeholder="intranet.example.com"></textarea>
+    </div>
+    <div class="block">
+      <label for="keepParams">Parameters to always keep</label>
+      <p>Use this if a rule breaks a site you rely on.</p>
+      <textarea id="keepParams" spellcheck="false" placeholder="si"></textarea>
+    </div>
+    <div class="block">
+      <label for="customParams">Extra parameters to remove</label>
+      <p>One per line. <code>*</code> works as a wildcard, e.g. <code>internal_track_*</code>.</p>
+      <textarea id="customParams" spellcheck="false" placeholder="my_tracker_*"></textarea>
+    </div>
+  </section>
+
+  <section>
+    <h2>Coverage</h2>
+    <div class="block" style="border-top:0">
+      <p id="coverage-summary"></p>
+      <ul class="coverage" id="coverage"></ul>
+    </div>
+  </section>
+
+  <footer>
+    <button id="reset">Restore defaults</button>
+    <span id="saved">Saved</span>
+  </footer>
+</main>
+
+<script src="rules.js"></script>
+<script src="cleaner.js"></script>
+<script src="settings.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

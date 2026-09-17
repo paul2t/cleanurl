@@ -1,0 +1,4 @@
+# Keep line endings LF everywhere: the generated src/page-world.js is compared
+# byte for byte against a fresh build in the test suite.
+* text=auto eol=lf
+*.png -text

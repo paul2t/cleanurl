@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CleanURL</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #4f46e5;
+    --chip: #f3f4f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1f2024;
+      --fg: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #34363c;
+      --accent: #818cf8;
+      --chip: #2b2d33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    width: 320px;
+    margin: 0;
+    padding: 14px;
+    background: var(--bg);
+    color: var(--fg);
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  header img { width: 20px; height: 20px; }
+  header h1 { font-size: 14px; font-weight: 600; margin: 0; flex: 1; }
+  .row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0; border-top: 1px solid var(--line);
+  }
+  .row .label { flex: 1; min-width: 0; }
+  .row .label b { font-weight: 600; }
+  .row .label small { display: block; color: var(--muted); font-size: 11px; }
+  .switch { position: relative; width: 34px; height: 20px; flex: none; }
+  .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .switch span {
+    position: absolute; inset: 0; border-radius: 999px;
+    background: var(--line); transition: background .15s; pointer-events: none;
+  }
+  .switch span::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
+    transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+  .switch input:checked + span { background: var(--accent); }
+  .switch input:checked + span::after { transform: translateX(14px); }
+  .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #url {
+    margin: 10px 0 0; padding: 8px; border-radius: 6px; background: var(--chip);
+    font: 11px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    word-break: break-all; max-height: 68px; overflow-y: auto;
+  }
+  #status { color: var(--muted); font-size: 11px; margin: 8px 0 0; }
+  #status.clean::before { content: "\2713  "; color: #16a34a; font-weight: 700; }
+  #diag {
+    margin: 8px 0 0; padding: 7px 9px; border-radius: 6px;
+    background: rgba(217,119,6,.12); color: #b45309; font-size: 11px; line-height: 1.4;
+  }
+  @media (prefers-color-scheme: dark) { #diag { color: #fbbf24; } }
+  .actions { display: flex; gap: 8px; margin-top: 12px; }
+  button {
+    flex: 1; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--chip); color: var(--fg); font: inherit; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  footer {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 11px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <header>
+    <img src="../icons/icon-32.png" alt="">
+    <h1>CleanURL</h1>
+    <label class="switch" title="Turn CleanURL on or off everywhere">
+      <input type="checkbox" id="enabled">
+      <span></span>
+    </label>
+  </header>
+
+  <div class="row">
+    <div class="label">
+      <b id="site-name">This site</b>
+      <small id="site-hint">Clean URLs on this site</small>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="site-enabled">
+      <span></span>
+    </label>
+  </div>
+
+  <p id="status"></p>
+  <p id="diag" hidden></p>
+  <div id="url" hidden></div>
+
+  <div class="actions">
+    <button id="copy" class="primary">Copy clean link</button>
+    <button id="options">Settings</button>
+  </div>
+
+  <footer>
+    <span id="stats"></span>
+    <a href="#" id="reset-stats">reset</a>
+  </footer>
+
+  <script src="rules.js"></script>
+  <script src="cleaner.js"></script>
+  <script src="settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
