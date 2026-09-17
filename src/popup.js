@@ -56,11 +56,7 @@
     el.siteName.textContent = host;
     el.siteEnabled.checked = !allowed;
     el.siteEnabled.disabled = !settings.enabled;
-    if (Clean.isBrowserRestricted(tab.url)) {
-      el.siteHint.textContent = 'Chrome does not allow extensions here';
-    } else {
-      el.siteHint.textContent = allowed ? 'Left alone on this site' : 'Cleaning URLs on this site';
-    }
+    el.siteHint.textContent = allowed ? 'Left alone on this site' : 'Cleaning URLs on this site';
 
     cleaned = Clean.cleanUrl(tab.url, Object.assign({}, settings, { enabled: true }));
     el.copy.disabled = false;
@@ -93,25 +89,24 @@
   function renderDiagnostics() {
     if (!host || !tab) return;
 
-    /*
-     * Chrome reserves its own pages, so no amount of reloading will get the
-     * extension running there. Saying "reload the page" would be advice that
-     * cannot work.
-     */
-    if (Clean.isBrowserRestricted(tab.url)) {
-      el.diag.hidden = false;
-      el.diag.textContent = 'Chrome blocks extensions from running on the Web ' +
-        'Store, so links here cannot be cleaned automatically. "Copy clean ' +
-        'link" above still works.';
-      return;
-    }
+
     chrome.tabs.sendMessage(tab.id, { type: 'status' }, { frameId: 0 }, (response) => {
       void chrome.runtime.lastError;
       const hooks = response && response.hooks;
       let note = '';
       if (!response) {
-        note = 'Not running on this tab yet. Reload the page: content scripts ' +
-               'only start on load.';
+        /*
+         * A reserved site explains the silence; anywhere else, the likely
+         * reason is a tab older than the extension. Checked only here, once
+         * the content script is known to be missing: the restricted list is
+         * the union across browsers, so it would be wrong as a prediction.
+         */
+        note = Clean.isBrowserRestricted(tab.url)
+          ? 'This browser reserves this site for itself, so no extension can ' +
+            'run here and links cannot be cleaned automatically. "Copy clean ' +
+            'link" above still works.'
+          : 'Not running on this tab yet. Reload the page: content scripts ' +
+            'only start on load.';
       } else if (!hooks) {
         note = 'The in-page script did not run here. Reload the page; if that ' +
                'does not help, the page is blocking it. Cleaning share fields ' +

@@ -56,14 +56,36 @@
   }
 
   /*
-   * Origins Chrome reserves for itself: extensions may not run content scripts
-   * there and declarativeNetRequest rules do not apply, so nothing this
+   * Origins a browser reserves for itself: extensions may not run content
+   * scripts there and declarativeNetRequest rules do not apply, so nothing this
    * extension does can reach them. Worth naming, because the symptom is
    * identical to a bug and the advice for a bug ("reload the page") is wrong.
+   *
+   * The lists differ per browser, and this one is the union: a site restricted
+   * in Firefox is ordinary in Chrome and the other way round. So this only ever
+   * explains a content script that is already known to be missing - it must
+   * never be used to predict one, or Chrome would be told it cannot run on
+   * support.mozilla.org, where it runs perfectly well.
    */
   const BROWSER_RESTRICTED = [
+    // Chrome
     { host: 'chromewebstore.google.com' },
     { host: 'chrome.google.com', path: '/webstore' },
+    // Firefox: the default extensions.webextensions.restrictedDomains list.
+    { host: 'accounts-static.cdn.mozilla.net' },
+    { host: 'accounts.firefox.com' },
+    { host: 'addons.cdn.mozilla.net' },
+    { host: 'addons.mozilla.org' },
+    { host: 'api.accounts.firefox.com' },
+    { host: 'content.cdn.mozilla.net' },
+    { host: 'discovery.addons.mozilla.org' },
+    { host: 'input.mozilla.org' },
+    { host: 'install.mozilla.org' },
+    { host: 'oauth.accounts.firefox.com' },
+    { host: 'profile.accounts.firefox.com' },
+    { host: 'support.mozilla.org' },
+    { host: 'sync.services.mozilla.com' },
+    { host: 'testpilot.firefox.com' },
   ];
 
   function isBrowserRestricted(url) {

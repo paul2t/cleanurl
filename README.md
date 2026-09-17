@@ -252,14 +252,20 @@ only, and a quiet counter does not mean nothing is being stripped.
 
 - Chrome's own right-click → *Copy link address* is browser UI and cannot be
   intercepted; use **Copy clean link** instead.
-- **The Chrome Web Store cannot be cleaned at all.** Chrome reserves
-  `chromewebstore.google.com` and `chrome.google.com/webstore` for itself: no
-  extension may run a content script there, and `declarativeNetRequest` rules
-  do not apply to those requests either, so a `?utm_source=item-share-cb` on a
-  store link survives. Nothing an extension can do changes this. The popup
-  recognises those pages and says so rather than suggesting a reload, and its
-  **Copy clean link** button still works, because it runs in the extension's
-  own page rather than the site's.
+- **Some sites are reserved by the browser and cannot be cleaned at all.**
+  Chrome reserves `chromewebstore.google.com` and `chrome.google.com/webstore`;
+  Firefox reserves its own list in `extensions.webextensions.restrictedDomains`,
+  which includes `support.mozilla.org`, `addons.mozilla.org` and
+  `accounts.firefox.com`. On those, no extension may run a content script and
+  `declarativeNetRequest` rules do not apply, so a `?utm_source=` survives.
+  Nothing an extension can do changes it. The popup recognises them and says so
+  instead of suggesting a reload, and its **Copy clean link** button still
+  works, because it runs in the extension's own page rather than the site's.
+
+  The two lists are different, so `Clean.isBrowserRestricted()` holds the union
+  and is only ever used to *explain* a content script already known to be
+  missing - never to predict one, or Chrome would be told it cannot run on
+  `support.mozilla.org`, where it runs perfectly well.
 - Redirect unwrapping (`google.com/url?q=…`) applies to links you copy, not to
   navigation, where following the redirect is usually the point.
 - Trackers inside the path rather than the query string need a per-site rule;

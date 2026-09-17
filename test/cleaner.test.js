@@ -229,9 +229,16 @@ check('cleanUrl reports what it removed',
  * Pages Chrome reserves for itself
  * ---------------------------------------------------------------- */
 for (const restricted of [
+  // Chrome
   'https://chromewebstore.google.com/detail/abc?utm_source=item-share-cb',
   'https://chromewebstore.google.com/',
   'https://chrome.google.com/webstore/detail/abc',
+  // Firefox, from extensions.webextensions.restrictedDomains
+  'https://support.mozilla.org/en-US/kb/add-on-signing-in-firefox?utm_source=x',
+  'https://addons.mozilla.org/en-US/firefox/addon/something/',
+  'https://accounts.firefox.com/signin',
+  'https://sync.services.mozilla.com/',
+  'https://install.mozilla.org/',
 ]) {
   check(`restricted: ${restricted}`, Clean.isBrowserRestricted(restricted), true);
 }
@@ -239,15 +246,27 @@ for (const ordinary of [
   'https://chrome.google.com/something-else',
   'https://google.com/search?q=x',
   'https://example.com/chromewebstore.google.com',
+  'https://www.mozilla.org/en-US/firefox/new/',
+  'https://blog.mozilla.org/post',
+  'https://developer.mozilla.org/en-US/docs/Web',
   'not a url',
 ]) {
   check(`not restricted: ${ordinary}`, Clean.isBrowserRestricted(ordinary), false);
 }
 
-/* The rules still describe what would come off, for the popup to show. */
+/*
+ * The list is the union across browsers, so it can only ever explain a content
+ * script already known to be missing. Being on it must not stop the rules from
+ * describing what would come off: the popup shows that, and its Copy clean
+ * link button works on these pages even though nothing automatic does.
+ */
 check('a restricted url is still analysed',
   Clean.cleanUrl('https://chromewebstore.google.com/detail/abc?utm_source=item-share-cb').url,
   'https://chromewebstore.google.com/detail/abc');
+
+check('a firefox-restricted url is still analysed',
+  Clean.cleanUrl('https://support.mozilla.org/en-US/kb/x?utm_source=y&as=u').url,
+  'https://support.mozilla.org/en-US/kb/x?as=u');
 
 /* ---------------------------------------------------------------- *
  * Guard rails: things that must never be stripped
