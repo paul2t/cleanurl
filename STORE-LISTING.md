@@ -204,6 +204,8 @@ The three certifications are all true: data is not sold to third parties, is not
 
 Note on "web history": the extension reads URLs in order to rewrite them, but never stores, logs, or transmits them. The only persisted values are the user's settings and two integer counters.
 
+The Firefox build makes the same declaration in the manifest, where AMO requires it: `browser_specific_settings.gecko.data_collection_permissions.required` is `["none"]`. The two must agree, and a test asserts the manifest half.
+
 ---
 
 ## Note on declarativeNetRequestFeedback

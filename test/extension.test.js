@@ -225,6 +225,19 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
     parseFloat(firefox.browser_specific_settings.gecko.strict_min_version) >= 128,
     firefox.browser_specific_settings.gecko.strict_min_version);
   ok('firefox drops the chrome version floor', !firefox.minimum_chrome_version);
+
+  /*
+   * AMO requires this for new extensions, and it is an attestation: it has to
+   * match the no-collection answers given to the Chrome Web Store.
+   */
+  const dataPermissions = firefox.browser_specific_settings.gecko.data_collection_permissions;
+  ok('firefox declares data collection permissions', !!dataPermissions);
+  eq('firefox declares that it collects nothing',
+    JSON.stringify(dataPermissions.required), JSON.stringify(['none']));
+  ok('firefox declares no optional collection either', !dataPermissions.optional);
+  ok('"none" is not mixed with a category',
+    dataPermissions.required.length === 1,
+    dataPermissions.required.join(', '));
   ok('firefox strips the unpacked-only permission',
     !firefox.permissions.includes('declarativeNetRequestFeedback'));
   ok('firefox keeps every real permission',

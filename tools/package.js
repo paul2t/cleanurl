@@ -62,7 +62,18 @@ function forFirefox(shipped) {
     shipped.background = { scripts: [...workerReferences(worker), worker] };
   }
   shipped.browser_specific_settings = {
-    gecko: { id: GECKO_ID, strict_min_version: FIREFOX_MIN_VERSION },
+    gecko: {
+      id: GECKO_ID,
+      strict_min_version: FIREFOX_MIN_VERSION,
+      /*
+       * Required by AMO for new extensions. "none" is the honest answer: URLs
+       * are read in order to rewrite them, but nothing is stored, logged or
+       * transmitted, and the only persisted values are the user's settings and
+       * two counters. It must agree with the data usage answers given to the
+       * Chrome Web Store, which declare no collection either.
+       */
+      data_collection_permissions: { required: ['none'] },
+    },
   };
   delete shipped.minimum_chrome_version;
   return shipped;
