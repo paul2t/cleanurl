@@ -365,7 +365,18 @@
     /* Interstitial "click through" URLs whose real destination sits in a query
      * parameter. Unwrapped when cleaning a link (not during navigation). */
     redirects: [
-      { hostRe: '^(www\\.)?google(\\.[a-z]{2,3}){1,2}$', paths: ['/url'], params: ['q', 'url'] },
+      {
+        hostRe: '^(www\\.)?google(\\.[a-z]{2,3}){1,2}$',
+        // Needed by the network rules, which cannot evaluate hostRe.
+        dnrDomains: ['google.com', 'google.co.uk', 'google.de', 'google.fr',
+                     'google.es', 'google.it', 'google.nl', 'google.ca',
+                     'google.com.au', 'google.co.jp', 'google.co.in',
+                     'google.com.br', 'google.pl', 'google.ru', 'google.be',
+                     'google.ch', 'google.at', 'google.se', 'google.dk',
+                     'google.no', 'google.fi', 'google.pt', 'google.ie'],
+        paths: ['/url'],
+        params: ['q', 'url'],
+      },
       { hosts: ['l.facebook.com', 'lm.facebook.com', 'l.messenger.com'], paths: ['/l.php'], params: ['u'] },
       { hosts: ['l.instagram.com', 'l.threads.net', 'l.threads.com'], params: ['u'] },
       { hosts: ['away.vk.com'], paths: ['/away.php'], params: ['to'] },
@@ -616,13 +627,32 @@
     return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
   }
 
+  function matchesRedirect(rule, url) {
+    if (!ruleMatchesHost(rule, url.hostname)) return false;
+    if (!rule.paths) return true;
+    return rule.paths.some((p) => url.pathname === p || url.pathname.startsWith(p));
+  }
+
+  /*
+   * An interstitial whose parameters are its payload and its signature. These
+   * are unwrapped, never edited: google.com/url rejects the whole request as
+   * invalid if usg is missing, so stripping the trackers Google puts on its own
+   * search results would break the link rather than clean it.
+   */
+  function isRedirector(url) {
+    let parsed;
+    try {
+      parsed = typeof url === 'string' ? new URL(url) : url;
+    } catch (e) {
+      return false;
+    }
+    return RULES.redirects.some((rule) => matchesRedirect(rule, parsed));
+  }
+
   function unwrapRedirect(url, depth) {
     if (depth > 3) return url;
     for (const rule of RULES.redirects) {
-      if (!ruleMatchesHost(rule, url.hostname)) continue;
-      if (rule.paths && !rule.paths.some((p) => url.pathname === p || url.pathname.startsWith(p))) {
-        continue;
-      }
+      if (!matchesRedirect(rule, url)) continue;
       if (rule.rawQueryIsUrl) {
         const target = parseHttpUrl(decodeName(url.search.slice(1)));
         if (target) return unwrapRedirect(target, depth + 1);
@@ -666,6 +696,12 @@
         result.unwrapped = true;
       }
     }
+
+    /*
+     * Still on a redirector: unwrapping is switched off, or the target could
+     * not be read. Either way its parameters must be left exactly as they are.
+     */
+    if (isRedirector(url)) return result;
 
     const matcher = buildMatcher(url.hostname, settings);
     const removed = [];
@@ -796,6 +832,7 @@
     hostMatches: hostMatches,
     isAllowlisted: isAllowlisted,
     isBrowserRestricted: isBrowserRestricted,
+    isRedirector: isRedirector,
     normalizeHost: normalizeHost,
   };
 

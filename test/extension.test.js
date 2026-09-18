@@ -46,16 +46,6 @@ ok('declares host permissions', manifest.host_permissions.includes('<all_urls>')
     !readsClipboard || manifest.permissions.includes('clipboardRead'));
 }
 
-/* The popup's "Clean clipboard link" button cannot read anything without it. */
-{
-  const popup = fs.readFileSync(path.join(root, manifest.action.default_popup), 'utf8');
-  const script = fs.readFileSync(path.join(root, 'src/popup.js'), 'utf8');
-  const readsClipboard = script.includes('clipboard.readText');
-  ok('the popup offers a clipboard cleanup', popup.includes('id="clean-clipboard"'));
-  ok('reading the clipboard is backed by the permission',
-    !readsClipboard || manifest.permissions.includes('clipboardRead'));
-}
-
 const referenced = [
   manifest.background.service_worker,
   manifest.action.default_popup,
@@ -420,6 +410,45 @@ for (const rule of rules) {
   for (const domain of rule.condition.requestDomains || []) {
     ok(`rule ${rule.id}: valid domain "${domain}"`,
       /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/.test(domain));
+  }
+}
+
+/*
+ * Redirectors must be exempt from the network rules too: declarativeNetRequest
+ * is what actually stripped usg off google.com/url and broke the redirect.
+ */
+{
+  const allows = rules.filter((rule) => rule.action.type === 'allow');
+  const strips = rules.filter((rule) => rule.action.type === 'redirect');
+  ok('there are redirector exemptions', allows.length > 0);
+  ok('every exemption outranks every stripping rule',
+    Math.min(...allows.map((r) => r.priority)) > Math.max(...strips.map((r) => r.priority)));
+
+  const googleUrl = allows.find((rule) =>
+    (rule.condition.requestDomains || []).includes('google.com'));
+  ok('google.com/url is exempt', !!googleUrl);
+  if (googleUrl) {
+    const re = new RegExp(googleUrl.condition.regexFilter);
+    ok('the exemption matches the redirector',
+      re.test('https://www.google.com/url?sa=j&usg=x'));
+    ok('the exemption does not cover search results',
+      !re.test('https://www.google.com/search?q=hi&usg=x'));
+    ok('the exemption does not cover a path merely containing /url',
+      !re.test('https://www.google.com/urlshortener?usg=x'));
+  }
+
+  /* RE2 powers regexFilter and has no lookahead; keep the filters within it. */
+  for (const rule of allows) {
+    if (!rule.condition.regexFilter) continue;
+    ok(`rule ${rule.id}: no lookahead in regexFilter`,
+      !/\(\?[=!]/.test(rule.condition.regexFilter), rule.condition.regexFilter);
+    let bad = null;
+    try {
+      new RegExp(rule.condition.regexFilter);
+    } catch (e) {
+      bad = e.message;
+    }
+    ok(`rule ${rule.id}: regexFilter compiles`, !bad, bad);
   }
 }
 

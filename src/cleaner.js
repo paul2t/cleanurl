@@ -226,13 +226,32 @@
     return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
   }
 
+  function matchesRedirect(rule, url) {
+    if (!ruleMatchesHost(rule, url.hostname)) return false;
+    if (!rule.paths) return true;
+    return rule.paths.some((p) => url.pathname === p || url.pathname.startsWith(p));
+  }
+
+  /*
+   * An interstitial whose parameters are its payload and its signature. These
+   * are unwrapped, never edited: google.com/url rejects the whole request as
+   * invalid if usg is missing, so stripping the trackers Google puts on its own
+   * search results would break the link rather than clean it.
+   */
+  function isRedirector(url) {
+    let parsed;
+    try {
+      parsed = typeof url === 'string' ? new URL(url) : url;
+    } catch (e) {
+      return false;
+    }
+    return RULES.redirects.some((rule) => matchesRedirect(rule, parsed));
+  }
+
   function unwrapRedirect(url, depth) {
     if (depth > 3) return url;
     for (const rule of RULES.redirects) {
-      if (!ruleMatchesHost(rule, url.hostname)) continue;
-      if (rule.paths && !rule.paths.some((p) => url.pathname === p || url.pathname.startsWith(p))) {
-        continue;
-      }
+      if (!matchesRedirect(rule, url)) continue;
       if (rule.rawQueryIsUrl) {
         const target = parseHttpUrl(decodeName(url.search.slice(1)));
         if (target) return unwrapRedirect(target, depth + 1);
@@ -276,6 +295,12 @@
         result.unwrapped = true;
       }
     }
+
+    /*
+     * Still on a redirector: unwrapping is switched off, or the target could
+     * not be read. Either way its parameters must be left exactly as they are.
+     */
+    if (isRedirector(url)) return result;
 
     const matcher = buildMatcher(url.hostname, settings);
     const removed = [];
@@ -406,6 +431,7 @@
     hostMatches: hostMatches,
     isAllowlisted: isAllowlisted,
     isBrowserRestricted: isBrowserRestricted,
+    isRedirector: isRedirector,
     normalizeHost: normalizeHost,
   };
 

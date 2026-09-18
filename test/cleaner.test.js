@@ -156,6 +156,54 @@ url('facebook l.php wrapper',
   'https://l.facebook.com/l.php?u=https%3A%2F%2Fexample.com%2Fa%3Fb%3D1&h=AT1',
   'https://example.com/a?b=1');
 
+/*
+ * A redirector's parameters are its payload and its signature. google.com/url
+ * signs the redirect with usg, and Google puts sa and usg on its own search
+ * results too - so the site rule that cleans a search page would, unexempted,
+ * strip the signature off the redirector and produce "the page you were on is
+ * trying to send you to an invalid URL".
+ */
+{
+  const wrapped = 'https://www.google.com/url?sa=j&url=https%3A%2F%2Fdeveloper.chrome.com' +
+    '%2Fdocs%2Fwebstore%2Fpublish%2F%23item_limits&uct=1725885917' +
+    '&usg=0bX9z45YbsChq1z-MdP39RivHuM.&opi=70078707';
+
+  check('a redirector is recognised', Clean.isRedirector(wrapped), true);
+
+  url('copying a redirector unwraps it to the destination', wrapped,
+    'https://developer.chrome.com/docs/webstore/publish/#item_limits');
+
+  // The address bar pass cannot unwrap (replaceState cannot cross origins),
+  // so it must leave the redirector completely alone rather than edit it.
+  url('an unwrapped redirector is never edited', wrapped, wrapped,
+    { unwrapRedirects: false });
+
+  url('the signature survives even with cleaning forced on the host',
+    'https://www.google.com/url?sa=j&url=https%3A%2F%2Fexample.com%2F&usg=SIG',
+    'https://www.google.com/url?sa=j&url=https%3A%2F%2Fexample.com%2F&usg=SIG',
+    { unwrapRedirects: false });
+}
+
+/* The same parameters are still noise on a search results page. */
+url('google search still loses sa, usg and ved',
+  'https://www.google.com/search?q=hello&sa=t&usg=abc&ved=xyz',
+  'https://www.google.com/search?q=hello');
+
+check('a search page is not a redirector',
+  Clean.isRedirector('https://www.google.com/search?q=hello'), false);
+
+for (const host of ['https://l.instagram.com/?u=x', 'https://out.reddit.com/?url=x',
+                    'https://www.youtube.com/redirect?q=x',
+                    'https://steamcommunity.com/linkfilter/?url=x',
+                    'https://l.facebook.com/l.php?u=x']) {
+  check(`redirector: ${host}`, Clean.isRedirector(host), true);
+}
+for (const host of ['https://www.youtube.com/watch?v=abc',
+                    'https://steamcommunity.com/app/570',
+                    'https://www.linkedin.com/feed/']) {
+  check(`not a redirector: ${host}`, Clean.isRedirector(host), false);
+}
+
 url('unwrapping can be turned off',
   'https://l.instagram.com/?u=https%3A%2F%2Fexample.com%2F&e=ATxyz',
   'https://l.instagram.com/?u=https%3A%2F%2Fexample.com%2F&e=ATxyz',

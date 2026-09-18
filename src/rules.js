@@ -353,7 +353,18 @@
     /* Interstitial "click through" URLs whose real destination sits in a query
      * parameter. Unwrapped when cleaning a link (not during navigation). */
     redirects: [
-      { hostRe: '^(www\\.)?google(\\.[a-z]{2,3}){1,2}$', paths: ['/url'], params: ['q', 'url'] },
+      {
+        hostRe: '^(www\\.)?google(\\.[a-z]{2,3}){1,2}$',
+        // Needed by the network rules, which cannot evaluate hostRe.
+        dnrDomains: ['google.com', 'google.co.uk', 'google.de', 'google.fr',
+                     'google.es', 'google.it', 'google.nl', 'google.ca',
+                     'google.com.au', 'google.co.jp', 'google.co.in',
+                     'google.com.br', 'google.pl', 'google.ru', 'google.be',
+                     'google.ch', 'google.at', 'google.se', 'google.dk',
+                     'google.no', 'google.fi', 'google.pt', 'google.ie'],
+        paths: ['/url'],
+        params: ['q', 'url'],
+      },
       { hosts: ['l.facebook.com', 'lm.facebook.com', 'l.messenger.com'], paths: ['/l.php'], params: ['u'] },
       { hosts: ['l.instagram.com', 'l.threads.net', 'l.threads.com'], params: ['u'] },
       { hosts: ['away.vk.com'], paths: ['/away.php'], params: ['to'] },

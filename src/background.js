@@ -26,7 +26,41 @@ const Settings = globalThis.CleanURLSettings;
  * pastes. Rewriting sub-resources buys little and breaks more. */
 const RESOURCE_TYPES = ['main_frame'];
 
-const PRIORITY = { allow: 100, site: 2, global: 1 };
+const PRIORITY = { allow: 100, redirector: 50, site: 2, global: 1 };
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/*
+ * Interstitials whose parameters are their payload and their signature.
+ * google.com/url rejects the whole request as invalid when usg is missing, so
+ * removing the trackers Google puts on its own search results breaks the link
+ * rather than cleaning it. These rules exempt the redirector itself; the
+ * destination it sends the browser to is a fresh navigation and gets cleaned
+ * normally, and a copied link is unwrapped rather than edited.
+ */
+function redirectorRules(startId) {
+  const rules = [];
+  let id = startId;
+  for (const rule of RULES.redirects) {
+    const domains = (rule.dnrDomains || rule.hosts || []).filter(isDnrDomain);
+    if (!domains.length) continue;
+    const condition = { requestDomains: domains, resourceTypes: RESOURCE_TYPES };
+    if (rule.paths && rule.paths.length) {
+      // RE2: no lookahead, so the path is anchored and followed explicitly.
+      condition.regexFilter = '^https?://[^/]+(' +
+        rule.paths.map(escapeRegExp).join('|') + ')([/?]|$)';
+    }
+    rules.push({
+      id: id++,
+      priority: PRIORITY.redirector,
+      action: { type: 'allow' },
+      condition: condition,
+    });
+  }
+  return rules;
+}
 
 /* ------------------------------------------------------------------ *
  * Rule compilation
@@ -72,6 +106,11 @@ function buildRules(settings) {
       action: { type: 'allow' },
       condition: { requestDomains: allowlist, resourceTypes: RESOURCE_TYPES },
     });
+  }
+
+  for (const rule of redirectorRules(id)) {
+    rules.push(rule);
+    id = rule.id + 1;
   }
 
   for (const site of RULES.sites) {

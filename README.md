@@ -282,6 +282,15 @@ only, and a quiet counter does not mean nothing is being stripped.
   `support.mozilla.org`, where it runs perfectly well.
 - Redirect unwrapping (`google.com/url?q=…`) applies to links you copy, not to
   navigation, where following the redirect is usually the point.
+- **A redirector's parameters are never edited, only unwrapped.** They are its
+  payload and its signature: `google.com/url` rejects the whole request as
+  invalid if `usg` is missing. Since Google puts `sa` and `usg` on its own
+  search results too, the site rule that cleans a search page would otherwise
+  strip the signature off the redirector and break the link rather than clean
+  it. Every host and path in the `redirects` list is exempt from parameter
+  removal, in the content script and in a `declarativeNetRequest` `allow` rule
+  that outranks every stripping rule. The destination the redirect lands on is
+  a fresh navigation and is cleaned normally.
 - Trackers inside the path rather than the query string need a per-site rule;
   only Amazon has one so far.
 - `test/`, `tools/` and `package.json` are development-only. Zip just
