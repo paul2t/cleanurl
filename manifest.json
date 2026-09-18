@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CleanURL",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "CleanURL removes tracking parameters and share identifiers from the links you open or copy.",
   "minimum_chrome_version": "116",
   "permissions": [
