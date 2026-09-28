@@ -120,6 +120,9 @@ url('amazon /ref= path segment and query noise',
 url('linkedin trk',
   'https://www.linkedin.com/posts/someone_activity-123?trk=public_post&lipi=urn%3Ali%3Apage%3Ax',
   'https://www.linkedin.com/posts/someone_activity-123');
+url('linkedin rcm',
+  'https://www.linkedin.com/posts/someone_activity-123?rcm=ACoAAB1234',
+  'https://www.linkedin.com/posts/someone_activity-123');
 
 url('google search noise',
   'https://www.google.com/search?q=hello&sca_esv=abc&ei=xyz&ved=2ahUKEwi&sourceid=chrome',

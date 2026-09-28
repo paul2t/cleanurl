@@ -167,7 +167,7 @@
         hosts: ['linkedin.com', 'lnkd.in'],
         dnrDomains: ['linkedin.com', 'lnkd.in'],
         params: ['trk', 'trackingId', 'lipi', 'licu', 'midToken', 'midSig',
-                 'trkEmail', 'originTrackingId', 'refId', 'eBP'],
+                 'trkEmail', 'originTrackingId', 'refId', 'eBP', 'rcm'],
       },
       {
         name: 'Amazon',
