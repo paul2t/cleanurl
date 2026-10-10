@@ -116,7 +116,7 @@
         // si = share identifier, pp = share payload, feature = entry point
         params: ['si', 'pp', 'feature', 'kw', 'ab_channel',
                  'embeds_referring_euri', 'embeds_referring_origin',
-                 'source_ve_path', 'themeRefresh'],
+                 'source_ve_path', 'themeRefresh', 'is'],
       },
       {
         name: 'Instagram / Threads',

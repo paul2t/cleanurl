@@ -85,6 +85,10 @@ url('youtube share payload',
   'https://www.youtube.com/watch?v=abc&pp=ygUFaGVsbG8%3D&feature=shared',
   'https://www.youtube.com/watch?v=abc');
 
+url('youtube is',
+  'https://www.youtube.com/watch?v=abc&is=Xy12AbCd',
+  'https://www.youtube.com/watch?v=abc');
+
 url('instagram igsh',
   'https://www.instagram.com/p/Cx1y2z3/?igsh=MWQx%3D%3D&img_index=1',
   'https://www.instagram.com/p/Cx1y2z3/?img_index=1');
