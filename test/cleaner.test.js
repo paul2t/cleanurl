@@ -92,6 +92,9 @@ url('youtube is',
 url('instagram igsh',
   'https://www.instagram.com/p/Cx1y2z3/?igsh=MWQx%3D%3D&img_index=1',
   'https://www.instagram.com/p/Cx1y2z3/?img_index=1');
+url('instagram psln',
+  'https://www.instagram.com/reel/Cx1y2z3/?igsh=MWQx&psln=abc123',
+  'https://www.instagram.com/reel/Cx1y2z3/');
 
 url('x.com s/t share ids',
   'https://x.com/someone/status/1234567890?s=20&t=Ab3dEf',
