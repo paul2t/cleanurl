@@ -156,6 +156,8 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
     files.filter((f) => f.startsWith('test/') || f.startsWith('tools/')).join(', '));
   ok('leaves sources that only feed the bundle out',
     !files.includes('src/content-main.js'));
+  ok('leaves the debug log page out',
+    !files.includes('src/debug.html') && !files.includes('src/debug.js'));
   for (const file of files) {
     ok(`packaged file exists: ${file}`, fs.existsSync(path.join(root, file)));
   }
@@ -236,6 +238,10 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
     dataPermissions.required.join(', '));
   ok('firefox strips the unpacked-only permission',
     !firefox.permissions.includes('declarativeNetRequestFeedback'));
+  ok('the unpacked manifest is the debug build', manifest.permissions.includes('webRequest'));
+  ok('no package is a debug build',
+    !firefox.permissions.includes('webRequest') &&
+    !shipped.manifest.permissions.includes('webRequest'));
   ok('firefox keeps every real permission',
     manifest.permissions
       .filter((p) => !packager.DEV_ONLY_PERMISSIONS.includes(p))
@@ -300,7 +306,7 @@ function loadServiceWorker(options) {
   const noop = () => {};
   const listener = { addListener: noop };
   const sandbox = {
-    console: { error: noop, warn: noop, log: noop },
+    console: { error: noop, warn: noop, log: noop, debug: noop },
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     URL: URL,
@@ -336,6 +342,8 @@ function loadServiceWorker(options) {
     },
   };
 
+  Object.assign(sandbox.chrome, (options && options.chrome) || {});
+  if (options && options.session) sandbox.chrome.storage.session = options.session;
   for (const name of omit) delete sandbox.chrome[name];
 
   vm.runInContext(fs.readFileSync(path.join(root, 'src', 'background.js'), 'utf8'), context,
@@ -367,6 +375,122 @@ const rules = sandbox.buildRules(defaults);
       android.sandbox.CleanURLSettings.normalize(null));
     ok('and still generates network rules on Android', androidRules.length > 0);
   }
+}
+
+const asyncTests = [];
+
+/*
+ * Loads the worker with webRequest and storage.session stubbed. `permissions`
+ * is what the manifest declares: the debug build is the unpacked folder, whose
+ * manifest keeps webRequest; a package's never does.
+ */
+function loadWithWebRequest(permissions) {
+  const listeners = {};
+  const on = (name) => ({ addListener: (fn) => { listeners[name] = fn; } });
+  const store = {};
+  const { sandbox } = loadServiceWorker({
+    chrome: {
+      webRequest: {
+        onBeforeRequest: on('request'), onBeforeRedirect: on('redirect'),
+        onCompleted: on('completed'), onErrorOccurred: on('error'),
+      },
+      runtime: { onInstalled: on('x'), onStartup: on('x'), onMessage: on('message'),
+                 lastError: null, getManifest: () => ({ permissions: permissions }) },
+      tabs: { query: (_q, cb) => cb([]), get: () => {}, onActivated: on('x'),
+              onUpdated: on('x'), onRemoved: on('removed') },
+    },
+    session: {
+      get: async (key) => (key in store ? { [key]: store[key] } : {}),
+      set: async (items) => { Object.assign(store, items); },
+      remove: async (key) => { delete store[key]; },
+    },
+  });
+  return { sandbox, listeners, store };
+}
+
+{
+  const packaged = loadWithWebRequest(['declarativeNetRequest', 'storage']);
+  ok('a package registers no webRequest listeners, even if the API exists',
+    !packaged.listeners.request && !packaged.listeners.redirect);
+}
+
+/*
+ * The debug build: the popup's "removed when opened" note and the debug log.
+ * The network rules strip a URL before the page exists, so the background
+ * keeps the original per tab from the redirect webRequest reports.
+ */
+{
+  const { listeners, store } = loadWithWebRequest(['declarativeNetRequest', 'webRequest']);
+  let requestId = 0;
+
+  const ask = (tabId) => new Promise((resolve) =>
+    listeners.message({ type: 'opened', tabId: tabId }, {}, resolve));
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+  const lastLog = () => (store.debugLog || []).slice(-1)[0];
+  const navigate = async (tabId, url, redirectUrl) => {
+    const id = String(++requestId);
+    const base = { tabId: tabId, requestId: id, type: 'main_frame' };
+    listeners.request(Object.assign({ url: url }, base));
+    if (redirectUrl) {
+      listeners.redirect(Object.assign({ url: url, redirectUrl: redirectUrl }, base));
+      listeners.request(Object.assign({ url: redirectUrl }, base));
+    }
+    listeners.completed(Object.assign({ url: redirectUrl || url }, base));
+    await settle();
+  };
+
+  asyncTests.push((async () => {
+    ok('the debug build registers its webRequest listeners',
+      !!listeners.request && !!listeners.redirect && !!listeners.completed);
+
+    const original = 'https://example.com/post?id=7&utm_source=x&fbclid=abc';
+    await navigate(1, original, 'https://example.com/post?id=7');
+    const record = await ask(1);
+    eq('records the URL the tab was opened with', record && record.original, original);
+    eq('and what was removed', record && record.removed.join(), 'utm_source,fbclid');
+
+    let entry = lastLog();
+    eq('logs the navigation', entry && entry.kind, 'navigation');
+    eq('with where it started', entry && entry.from, original);
+    eq('what was removed', entry && entry.removed.join(), 'utm_source,fbclid');
+    eq('and what was kept', entry && entry.kept.join(), 'id');
+    eq('and the redirect, credited to us', entry && entry.redirects[0].by, 'CleanURL');
+
+    listeners.message({ type: 'report', kind: 'url', count: 1, detail: {
+      source: 'address bar', from: 'https://example.com/post?id=7',
+      to: 'https://example.com/post?id=7&x=1', removed: ['ga_extra'] } },
+    { tab: { id: 1 }, frameId: 0 }, () => {});
+    await settle();
+    const merged = await ask(1);
+    eq('an address bar cleanup of the same page keeps the original',
+      merged && merged.original, original);
+    eq('and adds what it removed', merged && merged.removed.join(), 'utm_source,fbclid,ga_extra');
+    eq('and is logged', lastLog() && lastLog().kind, 'address bar');
+
+    await navigate(1, 'https://example.com/post?id=7&x=1');
+    ok('a reload of the cleaned URL keeps the record', !!(await ask(1)));
+    eq('a navigation where nothing was removed still logs what was kept',
+      lastLog() && lastLog().kept.join(), 'id,x');
+
+    const before = (store.debugLog || []).length;
+    await navigate(1, 'https://other.example/');
+    eq('a new page clears it', await ask(1), null);
+    eq('a URL without a query string is not logged', (store.debugLog || []).length, before);
+
+    await navigate(2, 'https://example.com/?ref=home&lang=fr', 'https://example.com/?lang=fr');
+    eq('a server redirect that drops a name we do not remove is not claimed',
+      await ask(2), null);
+    eq('and is logged as the server\'s', lastLog() && lastLog().redirects[0].by, 'server');
+
+    await navigate(3, 'http://example.com/?utm_source=x', 'https://example.com/');
+    eq('a redirect to another origin is not claimed', await ask(3), null);
+
+    await navigate(4, 'https://example.com/?gclid=1', 'https://example.com/');
+    ok('recorded for tab 4', !!(await ask(4)));
+    listeners.removed(4);
+    await settle();
+    eq('closing the tab forgets it', await ask(4), null);
+  })().catch((error) => ok('debug build tests ran', false, error.stack)));
 }
 
 /* Every setting must be editable, or it silently becomes unreachable. */
@@ -533,8 +657,10 @@ for (const site of RULES.sites) {
 }
 
 /* ---------------------------------------------------------------- */
-console.log(`${passed} passed, ${failures.length} failed`);
-if (failures.length) {
-  console.log('\n' + failures.map((f) => '  FAIL ' + f).join('\n'));
-  process.exit(1);
-}
+Promise.all(asyncTests).then(() => {
+  console.log(`${passed} passed, ${failures.length} failed`);
+  if (failures.length) {
+    console.log('\n' + failures.map((f) => '  FAIL ' + f).join('\n'));
+    process.exit(1);
+  }
+});

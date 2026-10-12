@@ -18,12 +18,17 @@
     cleanClipboard: document.getElementById('clean-clipboard'),
     clip: document.getElementById('clip'),
     clipUrl: document.getElementById('clip-url'),
+    opened: document.getElementById('opened'),
+    openedText: document.getElementById('opened-text'),
+    copyOriginal: document.getElementById('copy-original'),
+    debugLog: document.getElementById('debug-log'),
   };
 
   let settings = null;
   let tab = null;
   let host = '';
   let cleaned = null;
+  let opened = null;
 
   function activeTab() {
     return new Promise((resolve) => {
@@ -125,6 +130,46 @@
     });
   }
 
+  function withoutHash(url) {
+    const hash = url.indexOf('#');
+    return hash === -1 ? url : url.slice(0, hash);
+  }
+
+  /*
+   * What was removed before this page even loaded. The network rules do that
+   * out of the page's sight, so in the debug build the background keeps a note
+   * per tab; a package keeps none, and this stays hidden. Shown only while the
+   * tab is still on the URL that cleanup produced: after an in-page navigation
+   * it would describe some other URL.
+   */
+  function renderOpened() {
+    el.opened.hidden = true;
+    if (!host || !tab || !Settings.isDebugBuild()) return;
+    chrome.runtime.sendMessage({ type: 'opened', tabId: tab.id }, (record) => {
+      void chrome.runtime.lastError;
+      if (!record || !record.removed || !record.removed.length) return;
+      if (withoutHash(record.cleaned) !== withoutHash(tab.url)) return;
+      opened = record;
+      el.openedText.textContent = '';
+      el.openedText.append('Removed when opened: ');
+      const count = document.createElement('b');
+      count.textContent = plural(record.removed.length, 'tracker');
+      el.openedText.append(count, ' (' + record.removed.join(', ') + ')');
+      el.opened.hidden = false;
+    });
+  }
+
+  el.copyOriginal.addEventListener('click', async () => {
+    if (!opened) return;
+    try {
+      await navigator.clipboard.writeText(opened.original);
+      el.copyOriginal.textContent = 'Copied';
+      setTimeout(() => { el.copyOriginal.textContent = 'Copy original link'; }, 1200);
+    } catch (e) {
+      el.copyOriginal.textContent = 'Copy failed';
+    }
+  });
+
   function renderStats() {
     chrome.storage.local.get({ cleanedUrls: 0, cleanedCopies: 0 }, (stored) => {
       void chrome.runtime.lastError;
@@ -225,6 +270,16 @@
     window.close();
   });
 
+  // Only the debug build has a log to show; see Settings.isDebugBuild().
+  if (Settings.isDebugBuild()) {
+    el.debugLog.hidden = false;
+    el.debugLog.addEventListener('click', (event) => {
+      event.preventDefault();
+      chrome.tabs.create({ url: chrome.runtime.getURL('src/debug.html') });
+      window.close();
+    });
+  }
+
   el.resetStats.addEventListener('click', (event) => {
     event.preventDefault();
     chrome.storage.local.set({ cleanedUrls: 0, cleanedCopies: 0 }, renderStats);
@@ -240,6 +295,7 @@
       } catch (e) { /* internal page */ }
     }
     render();
+    renderOpened();
     renderStats();
     renderDiagnostics();
   })();

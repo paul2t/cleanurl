@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CleanURL debug log</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #4f46e5;
+    --chip: #f3f4f6;
+    --removed: #b91c1c;
+    --removed-bg: rgba(220, 38, 38, .1);
+    --kept: #92400e;
+    --kept-bg: rgba(217, 119, 6, .12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1f2024;
+      --fg: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #34363c;
+      --accent: #818cf8;
+      --chip: #2b2d33;
+      --removed: #fca5a5;
+      --removed-bg: rgba(248, 113, 113, .14);
+      --kept: #fcd34d;
+      --kept-bg: rgba(251, 191, 36, .14);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px 24px 40px;
+    background: var(--bg); color: var(--fg);
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    max-width: 1100px; margin: 0 auto 16px;
+  }
+  h1 { font-size: 16px; margin: 0; flex: 1; min-width: 200px; }
+  h1 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+  input[type="search"] {
+    padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--chip); color: var(--fg); font: inherit; width: 220px;
+  }
+  label.toggle { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  button {
+    padding: 6px 11px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--chip); color: var(--fg); font: inherit; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  .legend { max-width: 1100px; margin: 0 auto 14px; color: var(--muted); font-size: 12px; }
+  ol { list-style: none; margin: 0 auto; padding: 0; max-width: 1100px; }
+  li { border-top: 1px solid var(--line); padding: 10px 0; }
+  .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .kind {
+    font-size: 11px; padding: 1px 7px; border-radius: 999px;
+    background: var(--chip); border: 1px solid var(--line);
+  }
+  .host { font-weight: 600; }
+  .note { color: var(--muted); font-style: italic; }
+  .names { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .name {
+    font: 11px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    padding: 0 6px; border-radius: 4px;
+  }
+  .name.removed { color: var(--removed); background: var(--removed-bg); text-decoration: line-through; }
+  .name.kept { color: var(--kept); background: var(--kept-bg); }
+  .url {
+    margin-top: 6px; font: 11px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    word-break: break-all; color: var(--muted);
+  }
+  .url b { color: var(--fg); font-weight: 400; }
+  .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>CleanURL debug log <small id="count"></small></h1>
+    <input type="search" id="filter" placeholder="Filter by URL or parameter">
+    <label class="toggle"><input type="checkbox" id="kept-only"> Only with parameters left</label>
+    <button id="copy">Copy as JSON</button>
+    <button id="clear">Clear</button>
+  </header>
+  <p class="legend">
+    Newest first. <span class="name removed">removed</span> was taken out;
+    <span class="name kept">kept</span> was still there afterwards, which is
+    where a missing rule shows up. Held in memory only, until the browser closes.
+  </p>
+  <ol id="log"></ol>
+  <script src="debug.js"></script>
+</body>
+</html>

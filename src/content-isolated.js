@@ -21,10 +21,16 @@
   let settings = Object.assign({}, Clean.DEFAULT_SETTINGS);
   const isTopFrame = window.top === window;
 
+  /*
+   * In the debug build (this folder loaded unpacked), reports also carry what
+   * was cleaned, for the debug log. A package never sends them.
+   */
+  const DEBUG = Settings.isDebugBuild();
+
   function pushConfig() {
     try {
       document.dispatchEvent(new CustomEvent('cleanurl:config', {
-        detail: JSON.stringify(settings),
+        detail: JSON.stringify(Object.assign({}, settings, { debug: DEBUG })),
       }));
     } catch (e) { /* document gone */ }
   }
@@ -33,6 +39,10 @@
     try {
       chrome.runtime.sendMessage(message, () => void chrome.runtime.lastError);
     } catch (e) { /* extension reloaded under us */ }
+  }
+
+  function report(kind, count, detail) {
+    send({ type: 'report', kind: kind, count: count, detail: DEBUG ? detail : undefined });
   }
 
   /*
@@ -55,12 +65,12 @@
     } catch (e) {
       return;
     }
-    send({ type: 'report', kind: payload.kind, count: payload.count });
+    report(payload.kind, payload.count, payload.detail);
   }, true);
 
   CopyGuard.install({
     getSettings: () => settings,
-    report: (kind, count) => send({ type: 'report', kind: kind, count: count }),
+    report: report,
   });
 
   /**
@@ -112,7 +122,8 @@
     try {
       if (new URL(result.url).origin !== location.origin) return;
       history.replaceState(history.state, '', result.url);
-      send({ type: 'report', kind: 'url', count: result.removed.length || 1 });
+      report('url', result.removed.length || 1,
+        { source: 'address bar', from: current, to: result.url, removed: result.removed });
     } catch (e) { /* some pages block history access */ }
   }
 

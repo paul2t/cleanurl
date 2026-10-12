@@ -226,6 +226,8 @@ function recordCleaned(kind, count) {
 function countNetworkCleanups() {
   const api = chrome.declarativeNetRequest;
   if (!api || !api.onRuleMatchedDebug) return;
+  // The debug build watches the same redirects and counts them itself.
+  if (DEBUG) return;
   try {
     api.onRuleMatchedDebug.addListener((info) => {
       const url = info && info.request && info.request.url;
@@ -240,7 +242,211 @@ function countNetworkCleanups() {
   } catch (e) { /* permission not granted, or a packed build */ }
 }
 
+/* ------------------------------------------------------------------ *
+ * Debug build: a log of what was removed and what was kept, and the
+ * popup's "Removed when opened" note
+ * ------------------------------------------------------------------ */
+
+/*
+ * Only when this folder is loaded unpacked (see Settings.isDebugBuild): a
+ * package has no webRequest, so none of this runs and no URL is ever kept.
+ *
+ * The network rules rewrite the request before the page exists, so the page
+ * never sees the URL it was opened with. A redirect from declarativeNetRequest
+ * is visible to webRequest like any other, which is the one place the original
+ * survives.
+ *
+ * Everything is held in storage.session: memory only, gone when the browser
+ * closes, and not readable by content scripts.
+ */
+const DEBUG = Settings.isDebugBuild() && !!chrome.webRequest;
+const session = chrome.storage && chrome.storage.session;
+const memory = {};
+const LOG_KEY = 'debugLog';
+const LOG_LIMIT = 500;
+
+function sessionGet(key) {
+  if (!session) return Promise.resolve(memory[key]);
+  return session.get(key).then((stored) => stored[key], () => undefined);
+}
+
+function sessionSet(key, value) {
+  if (!session) {
+    if (value === undefined) delete memory[key];
+    else memory[key] = value;
+    return Promise.resolve();
+  }
+  return (value === undefined ? session.remove(key) : session.set({ [key]: value }))
+    .catch(() => {});
+}
+
+/*
+ * A navigation clears a tab's record while its own redirect writes a new one,
+ * and both are asynchronous; run every read-modify-write one at a time so the
+ * clear cannot land last and the log never loses an entry.
+ */
+let queue = Promise.resolve();
+function serial(task) {
+  queue = queue.then(task).catch(() => {});
+  return queue;
+}
+
+function withoutHash(url) {
+  const hash = url.indexOf('#');
+  return hash === -1 ? url : url.slice(0, hash);
+}
+
+function queryNames(url) {
+  return Array.from(new Set(url.searchParams.keys()));
+}
+
+/** Parameter names left in every URL found in `text`. */
+function keptNames(text) {
+  const names = new Set();
+  for (const match of String(text || '').match(/https?:\/\/[^\s"'<>]+/g) || []) {
+    try {
+      for (const name of new URL(match).searchParams.keys()) names.add(name);
+    } catch (e) { /* not a URL after all */ }
+  }
+  return Array.from(names);
+}
+
+/**
+ * Appends to the debug log, newest last, and echoes it to the worker's
+ * console. `entry`: { kind, tabId, from, to, removed, kept, note }.
+ */
+function debugLog(entry) {
+  if (!DEBUG) return Promise.resolve();
+  const record = Object.assign({ time: Date.now(), removed: [], kept: [] }, entry);
+  console.debug('[CleanURL]', record.kind, record.from, '->', record.to,
+    'removed:', record.removed, 'kept:', record.kept, record.note || '');
+  return serial(async () => {
+    const log = (await sessionGet(LOG_KEY)) || [];
+    log.push(record);
+    await sessionSet(LOG_KEY, log.slice(-LOG_LIMIT));
+  });
+}
+
+function openedKey(tabId) {
+  return 'opened:' + tabId;
+}
+
+function getOpened(tabId) {
+  return sessionGet(openedKey(tabId)).then((record) => record || null);
+}
+
+/*
+ * Records a cleanup of `from` into `to` on a tab. When the address bar pass
+ * cleans further a URL the network rules already cleaned, the two merge into
+ * one record that still starts at the URL the user actually opened.
+ */
+function recordOpened(tabId, from, to, removed) {
+  if (!DEBUG) return Promise.resolve();
+  return serial(async () => {
+    const previous = await getOpened(tabId);
+    const continues = previous && withoutHash(previous.cleaned) === withoutHash(from);
+    await sessionSet(openedKey(tabId), {
+      original: continues ? previous.original : from,
+      cleaned: to,
+      removed: Array.from(new Set([...(continues ? previous.removed : []), ...removed])),
+    });
+  });
+}
+
+/*
+ * One log entry per top-level navigation that carried a query string, written
+ * once it finishes: the URL it started from, every redirect on the way and
+ * who made it, what our rules removed, and what was still there at the end.
+ */
+function watchNavigations() {
+  if (!DEBUG) return;
+  const filter = { urls: ['http://*/*', 'https://*/*'], types: ['main_frame'] };
+  const pending = new Map();
+
+  chrome.webRequest.onBeforeRequest.addListener((details) => {
+    if (details.tabId < 0) return;
+    // Fires again after each redirect with the same requestId.
+    if (!pending.has(details.requestId)) {
+      pending.set(details.requestId, { from: details.url, removed: [], redirects: [] });
+    }
+    // A new page in the tab: whatever was recorded for the previous one is
+    // stale. A reload of the cleaned URL keeps it, as that is the same page.
+    serial(async () => {
+      const previous = await getOpened(details.tabId);
+      if (previous && withoutHash(previous.cleaned) !== withoutHash(details.url)) {
+        await sessionSet(openedKey(details.tabId), undefined);
+      }
+    });
+  }, filter);
+
+  chrome.webRequest.onBeforeRedirect.addListener((details) => {
+    if (details.tabId < 0 || !details.redirectUrl) return;
+    const navigation = pending.get(details.requestId);
+    const hop = { to: details.redirectUrl, by: 'server' };
+    if (navigation) navigation.redirects.push(hop);
+
+    let from;
+    let to;
+    try {
+      from = new URL(details.url);
+      to = new URL(details.redirectUrl);
+    } catch (e) {
+      return;
+    }
+    // Ours only ever removes query parameters; anything else is the server's.
+    if (from.origin !== to.origin || from.pathname !== to.pathname) return;
+    const kept = new Set(to.searchParams.keys());
+    const removed = queryNames(from).filter((name) => !kept.has(name));
+    if (!removed.length) return;
+
+    /*
+     * A site that redirects to drop its own parameters is not ours to claim:
+     * only call it ours when every name gone is one our rules remove. The
+     * check is kept on the navigation so its log entry waits for the answer.
+     */
+    if (navigation) navigation.check = Settings.load().then((settings) => {
+      const ours = Clean.cleanUrl(details.url, Object.assign({}, settings, {
+        unwrapRedirects: false,
+      }));
+      if (!removed.every((name) => ours.removed.indexOf(name) !== -1)) return;
+      hop.by = 'CleanURL';
+      navigation.removed.push(...removed);
+      recordCleaned('url', removed.length);
+      recordOpened(details.tabId, details.url, details.redirectUrl, removed);
+    });
+  }, filter);
+
+  function finish(details, note) {
+    const navigation = pending.get(details.requestId);
+    if (!navigation) return;
+    pending.delete(details.requestId);
+    Promise.resolve(navigation.check).then(() => {
+      const kept = keptNames(details.url);
+      if (!navigation.removed.length && !kept.length) return; // nothing to see
+      debugLog({
+        kind: 'navigation',
+        tabId: details.tabId,
+        from: navigation.from,
+        to: details.url,
+        removed: navigation.removed,
+        kept: kept,
+        redirects: navigation.redirects,
+        note: note,
+      });
+    });
+  }
+
+  chrome.webRequest.onCompleted.addListener((details) => finish(details), filter);
+  chrome.webRequest.onErrorOccurred.addListener(
+    (details) => finish(details, details.error), filter);
+
+  chrome.tabs.onRemoved.addListener((tabId) => {
+    serial(() => sessionSet(openedKey(tabId), undefined));
+  });
+}
+
 countNetworkCleanups();
+watchNavigations();
 
 /* ------------------------------------------------------------------ *
  * Badge: a quiet "off" when the extension is not acting on this tab
@@ -325,6 +531,11 @@ async function copyClean(info, tab) {
       args: [result.url],
     });
     if (result.changed) recordCleaned('copy', 1);
+    debugLog({
+      kind: 'context menu', tabId: tab.id, from: source, to: result.url,
+      removed: result.removed, kept: keptNames(result.url),
+      note: result.unwrapped ? 'unwrapped a redirect' : '',
+    });
   } catch (error) {
     console.error('[CleanURL] could not copy:', error);
   }
@@ -373,8 +584,40 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'loading' || changeInfo.url) updateBadge(tabId, tab.url);
 });
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message && message.type === 'report') recordCleaned(message.kind, message.count);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message) return undefined;
+  if (message.type === 'report') {
+    recordCleaned(message.kind, message.count);
+    // In the debug build, reports also say what was cleaned (see debugDetails
+    // in the content scripts).
+    const detail = message.detail;
+    if (DEBUG && detail && typeof detail.from === 'string') {
+      const tabId = sender.tab ? sender.tab.id : -1;
+      debugLog({
+        kind: detail.source || message.kind,
+        tabId: tabId,
+        from: detail.from,
+        to: detail.to,
+        removed: detail.removed || [],
+        kept: keptNames(detail.to),
+      });
+      // The address bar pass on a top-level page continues the record the
+      // network rules started for the popup.
+      if (detail.source === 'address bar' && sender.frameId === 0 && tabId >= 0) {
+        recordOpened(tabId, detail.from, detail.to, detail.removed || []);
+      }
+    }
+    return undefined;
+  }
+  if (message.type === 'opened' && typeof message.tabId === 'number') {
+    // Queued behind any pending write, so a popup opened mid-navigation
+    // sees the finished record rather than the one being replaced.
+    let record = null;
+    serial(async () => { record = await getOpened(message.tabId); })
+      .then(() => sendResponse(record));
+    return true; // answered asynchronously
+  }
+  return undefined;
 });
 
 // The worker may be restarted without onInstalled/onStartup firing.

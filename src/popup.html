@@ -62,6 +62,10 @@
     word-break: break-all; max-height: 68px; overflow-y: auto;
   }
   #status { color: var(--muted); font-size: 11px; margin: 8px 0 0; }
+  #opened { margin: 8px 0 0; }
+  #opened p { color: var(--muted); font-size: 11px; margin: 0; }
+  #opened p b { color: var(--fg); font-weight: 600; }
+  #opened button { margin-top: 6px; width: 100%; }
   #status.clean::before { content: "\2713  "; color: #16a34a; font-weight: 700; }
   #diag {
     margin: 8px 0 0; padding: 7px 9px; border-radius: 6px;
@@ -91,6 +95,7 @@
   }
   footer a { color: var(--accent); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
+  footer a + a { margin-left: 10px; }
 </style>
 </head>
 <body>
@@ -115,6 +120,12 @@
   </div>
 
   <p id="status"></p>
+  <div id="opened" hidden>
+    <p id="opened-text"></p>
+    <button id="copy-original" title="Copy the link as it was before CleanURL removed anything">
+      Copy original link
+    </button>
+  </div>
   <p id="diag" hidden></p>
   <div id="url" hidden></div>
 
@@ -132,7 +143,10 @@
 
   <footer>
     <span id="stats"></span>
-    <a href="#" id="reset-stats">reset</a>
+    <span>
+      <a href="#" id="debug-log" hidden>debug log</a>
+      <a href="#" id="reset-stats">reset</a>
+    </span>
   </footer>
 
   <script src="rules.js"></script>

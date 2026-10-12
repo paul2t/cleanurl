@@ -32,8 +32,14 @@ const root = path.join(__dirname, '..');
  * a reviewer to ask what it is for. src/background.js feature-detects the API,
  * so dropping it just means the popup counter stops counting network-level
  * cleanups and keeps counting in-page and copy ones.
+ *
+ * webRequest is what makes the debug build: it is the only way to see a URL
+ * before declarativeNetRequest rewrote it, which the debug log and the popup's
+ * "Removed when opened" note need. Settings.isDebugBuild() keys off it, so a
+ * package never runs any of that, and src/debug.html is reachable only from
+ * code, never from the manifest or a packaged page, so it is left out too.
  */
-const DEV_ONLY_PERMISSIONS = ['declarativeNetRequestFeedback'];
+const DEV_ONLY_PERMISSIONS = ['declarativeNetRequestFeedback', 'webRequest'];
 
 /*
  * Identity on addons.mozilla.org. Changing it after publishing creates a

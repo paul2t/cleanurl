@@ -75,6 +75,19 @@
     });
   }
 
+  /*
+   * The debug build is this folder loaded unpacked. tools/package.js strips the
+   * dev-only permissions from every package it writes, so their presence is
+   * the marker, and a published build can never switch debugging on.
+   */
+  function isDebugBuild() {
+    try {
+      return (chrome.runtime.getManifest().permissions || []).indexOf('webRequest') !== -1;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function setSiteAllowed(domain, allowed) {
     const settings = await load();
     const clean = toDomain(domain);
@@ -95,5 +108,6 @@
     parseList: parseList,
     toDomain: toDomain,
     setSiteAllowed: setSiteAllowed,
+    isDebugBuild: isDebugBuild,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : self);

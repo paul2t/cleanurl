@@ -197,12 +197,13 @@ clean link** - there is no right-click menu to put it in. The packager rewrites 
 `declarativeNetRequest` itself needs only Firefox 113, so the floor is about
 the clipboard hook rather than the core cleaning.
 
-The manifest is rewritten on the way in to drop `declarativeNetRequestFeedback`.
-Chrome only fires `onRuleMatchedDebug` for an unpacked extension, so in a
-published build that permission does nothing except invite a reviewer to ask
-what it is for. The file on disk keeps it, so loading this folder unpacked still
-gets the full popup counter. Add to `DEV_ONLY_PERMISSIONS` in
-`tools/package.js` to strip more.
+The manifest is rewritten on the way in to drop the dev-only permissions,
+`declarativeNetRequestFeedback` and `webRequest`. Chrome only fires
+`onRuleMatchedDebug` for an unpacked extension, so in a published build that
+permission does nothing except invite a reviewer to ask what it is for, and
+`webRequest` is what turns on the [debug build](#debug-build). The file on
+disk keeps both, so loading this folder unpacked still gets them. Add to
+`DEV_ONLY_PERMISSIONS` in `tools/package.js` to strip more.
 
 The file list is walked
 out of the manifest (icons, content scripts, the service worker's
@@ -221,6 +222,33 @@ chrome.exe --pack-extension=. --pack-extension-key=key.pem
 but Chrome refuses to install a `.crx` from outside the Web Store, so that is
 only useful for enterprise policy deployment. For local use, **Load unpacked**
 on this folder.
+
+## Debug build
+
+Loading this folder unpacked (**Load unpacked** in `chrome://extensions`) is
+the debug build: its manifest keeps `webRequest`, which every package drops,
+and `Settings.isDebugBuild()` keys off that. A published build can never
+switch any of this on.
+
+- **Debug log.** The popup shows a **debug log** link, which opens
+  `src/debug.html`. Every top-level navigation with a query string, every
+  address bar cleanup and every cleaned copy is listed with the URL before and
+  after, the parameters **removed**, and the parameters **kept**. The kept list
+  is where a missing rule shows up. Navigations also list each redirect and
+  whether CleanURL or the server made it. The same entries are echoed with
+  `console.debug` in the service worker's console.
+- **Removed when opened.** The popup says which trackers the network rules
+  removed before the page loaded, with a **Copy original link** button for
+  when a site needed one of them.
+
+The network rules rewrite a URL before the page exists, so the page never sees
+the original. `webRequest` (observe-only, no blocking) reports the rewrite as a
+redirect, which is the one place it is still visible.
+
+The log keeps the last 500 entries in `storage.session`: memory only, cleared
+when the browser closes, and not readable by content scripts. The page-world
+script only describes copies in its report events when the debug flag is set,
+since a page can see those events.
 
 ## Permissions
 

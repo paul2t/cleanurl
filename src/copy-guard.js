@@ -69,7 +69,8 @@
   /**
    * @param {object} options
    *   getSettings() -> settings
-   *   report(kind, count)
+   *   report(kind, count, detail) - detail says what was cleaned, for the
+   *     debug log
    *   write(dataTransfer, type, value) - lets the page world bypass its own
    *     patched setData so a copy is not counted twice.
    */
@@ -130,7 +131,8 @@
 
         // setData only reaches the clipboard on a cancelled event.
         if (!event.defaultPrevented) event.preventDefault();
-        report('copy', result.count);
+        report('copy', result.count,
+          { source: 'copy event', from: source, to: result.text, removed: result.removed });
       } catch (e) { /* never break the page's own copy */ }
     }
 

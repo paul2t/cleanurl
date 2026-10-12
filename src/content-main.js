@@ -93,10 +93,16 @@
     document.dispatchEvent(new CustomEvent('cleanurl:hello'));
   } catch (e) { /* nothing listening yet; it will push instead */ }
 
-  function report(kind, count) {
+  /*
+   * `detail` (what was cleaned) only goes out in the debug build: this event
+   * is visible to the page, which has no business seeing the user's copies
+   * described back to it otherwise.
+   */
+  function report(kind, count, detail) {
     try {
       document.dispatchEvent(new CustomEvent('cleanurl:report', {
-        detail: JSON.stringify({ kind: kind, count: count }),
+        detail: JSON.stringify({ kind: kind, count: count,
+                                 detail: settings && settings.debug ? detail : undefined }),
       }));
     } catch (e) { /* page tore down the event constructor */ }
   }
@@ -140,7 +146,8 @@
         const result = cleanCopyText(text);
         if (result) {
           value = result.text;
-          report('copy', result.count);
+          report('copy', result.count, { source: 'clipboard.writeText',
+            from: String(text), to: result.text, removed: result.removed });
         }
       } catch (e) { /* copy the original rather than nothing */ }
       return original.call(this, value);
@@ -168,7 +175,8 @@
         data[type] = blob.then((b) => b.text()).then((text) => {
           const result = cleanCopyText(text);
           if (!result) return new Blob([text], { type: type });
-          report('copy', result.count);
+          report('copy', result.count, { source: 'ClipboardItem',
+            from: text, to: result.text, removed: result.removed });
           return new Blob([result.text], { type: type });
         });
       } else if (type === 'text/html') {
@@ -218,7 +226,8 @@
             const result = cleanCopyText(data);
             if (result) {
               value = result.text;
-              report('copy', result.count);
+              report('copy', result.count, { source: 'setData',
+                from: String(data), to: result.text, removed: result.removed });
             }
           } else if (kind === 'text/html') {
             const result = Clean.cleanHtml(String(data), settings);
@@ -264,17 +273,19 @@
         if (copying() && data && typeof data === 'object') {
           const next = Object.assign({}, data);
           let changed = false;
+          const removed = [];
           if (typeof next.url === 'string') {
             const result = Clean.cleanUrl(next.url, settings);
-            if (result.changed) { next.url = result.url; changed = true; }
+            if (result.changed) { next.url = result.url; changed = true; removed.push(...result.removed); }
           }
           if (typeof next.text === 'string') {
             const result = Clean.cleanText(next.text, settings);
-            if (result.changed) { next.text = result.text; changed = true; }
+            if (result.changed) { next.text = result.text; changed = true; removed.push(...result.removed); }
           }
           if (changed) {
             payload = next;
-            report('copy', 1);
+            report('copy', 1, { source: 'navigator.share',
+              from: data.url || data.text, to: next.url || next.text, removed: removed });
           }
         }
       } catch (e) { /* share the original */ }
@@ -305,7 +316,8 @@
             }));
             if (result.changed) {
               target = result.url;
-              report('url', result.removed.length || 1);
+              report('url', result.removed.length || 1, { source: 'history.' + method,
+                from: absolute.href, to: result.url, removed: result.removed });
             }
           }
         } catch (e) { target = url; }
