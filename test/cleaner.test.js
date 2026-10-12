@@ -42,6 +42,10 @@ url('google/meta/microsoft click ids',
   'https://shop.example.com/p/1?gclid=abc&fbclid=def&msclkid=ghi&mc_cid=jkl&size=large',
   'https://shop.example.com/p/1?size=large');
 
+url('matomo mtm_*, seznam sznclid and dop_* recommendation ids',
+  'https://example.cz/a?mtm_campaign=x&sznclid=abc&dop_ab_variant=1&dop_id=2&page=2',
+  'https://example.cz/a?page=2');
+
 url('encoding of surviving params is preserved byte for byte',
   'https://example.com/?q=a%20b%2Bc&utm_source=x&r=1+2',
   'https://example.com/?q=a%20b%2Bc&r=1+2');
@@ -131,6 +135,34 @@ url('linkedin rcm',
   'https://www.linkedin.com/posts/someone_activity-123?rcm=ACoAAB1234',
   'https://www.linkedin.com/posts/someone_activity-123');
 
+url('amazon refRID and wildcard cv_ct_* noise',
+  'https://www.amazon.de/dp/B0123?refRID=XYZ&dchild=1&cv_ct_cx=foo&th=1',
+  'https://www.amazon.de/dp/B0123');
+
+url('google play share campaign',
+  'https://play.google.com/store/apps/details?id=org.mozilla.firefox&pcampaignid=web_share',
+  'https://play.google.com/store/apps/details?id=org.mozilla.firefox');
+
+url('bing telemetry, real query kept',
+  'https://www.bing.com/search?q=hello&form=QBLH&sp=-1&sc=8-5&qs=n&sk=&cvid=ABC',
+  'https://www.bing.com/search?q=hello');
+
+url('nytimes share id',
+  'https://www.nytimes.com/2026/01/01/world/story.html?smid=url-share',
+  'https://www.nytimes.com/2026/01/01/world/story.html');
+
+url('bbc at_* via site pattern',
+  'https://www.bbc.com/news/articles/c123?at_medium=social&at_bbc_team=editorial&at_new_thing=1',
+  'https://www.bbc.com/news/articles/c123');
+
+url('mercado libre wildcard c_* and reco_*',
+  'https://articulo.mercadolibre.com/MLA-123?c_id=x&c_element_order=1&reco_new=2&tracking_id=abc',
+  'https://articulo.mercadolibre.com/MLA-123');
+
+url('new site params do not leak to other sites',
+  'https://example.com/?smid=keep&cvid=keep',
+  'https://example.com/?smid=keep&cvid=keep');
+
 url('google search noise',
   'https://www.google.com/search?q=hello&sca_esv=abc&ei=xyz&ved=2ahUKEwi&sourceid=chrome',
   'https://www.google.com/search?q=hello');
@@ -165,6 +197,18 @@ url('instagram outbound wrapper',
 url('facebook l.php wrapper',
   'https://l.facebook.com/l.php?u=https%3A%2F%2Fexample.com%2Fa%3Fb%3D1&h=AT1',
   'https://example.com/a?b=1');
+
+url('duckduckgo /l/ wrapper',
+  'https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fa%3Futm_source%3Dddg&rut=abc',
+  'https://example.com/a');
+
+url('deviantart outgoing wrapper (raw query)',
+  'https://www.deviantart.com/users/outgoing?https://example.com/page',
+  'https://example.com/page');
+
+url('vk away.php on the bare domain',
+  'https://vk.com/away.php?to=https%3A%2F%2Fexample.com%2F&cc_key=',
+  'https://example.com/');
 
 /*
  * A redirector's parameters are its payload and its signature. google.com/url

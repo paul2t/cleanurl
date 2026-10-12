@@ -52,7 +52,7 @@ WHAT IT REMOVES
 
 Around 170 parameters on every site, including utm_*, gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid, mc_cid, mkt_tok, and HubSpot, Klaviyo and Matomo tags.
 
-Share and tracking identifiers for around 28 sites: YouTube si and pp, Instagram and Threads igsh, X s and t, TikTok's share_* set, Reddit share_id, Spotify si, LinkedIn trk, Facebook mibextid, Amazon pd_rd_* and pf_rd_*, plus eBay, AliExpress, Bilibili, Etsy, Steam, Twitch and others.
+Share and tracking identifiers for around 40 sites and site groups: YouTube si and pp, Instagram and Threads igsh, X s and t, TikTok's share_* set, Reddit share_id, Spotify si, LinkedIn trk, Facebook mibextid, Amazon pd_rd_* and pf_rd_*, plus eBay, AliExpress, Bilibili, Etsy, Steam, Twitch and others.
 
 Affiliate tags are deliberately left alone. They pay whoever shared the link, so removing them is your decision rather than a default. There is a switch if you want it.
 
