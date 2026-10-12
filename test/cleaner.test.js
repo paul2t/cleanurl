@@ -46,6 +46,18 @@ url('matomo mtm_*, seznam sznclid and dop_* recommendation ids',
   'https://example.cz/a?mtm_campaign=x&sznclid=abc&dop_ab_variant=1&dop_id=2&page=2',
   'https://example.cz/a?page=2');
 
+url('email, webtrends, hootsuite and wikipedia trackers',
+  'https://example.com/a?_bta_tid=1&gdfms=2&dm_i=3&WT.mc_id=4&hootPostID=5&wprov=sfla1&sms_click=6&keep=1',
+  'https://example.com/a?keep=1');
+
+url('branch.io ids removed on any site',
+  'https://example.com/a?_branch_match_id=123&_branch_referrer=abc',
+  'https://example.com/a');
+
+url('unknown trk_* variant caught by pattern',
+  'https://example.com/a?trk_new_thing=1&trk=keep',
+  'https://example.com/a?trk=keep');
+
 url('encoding of surviving params is preserved byte for byte',
   'https://example.com/?q=a%20b%2Bc&utm_source=x&r=1+2',
   'https://example.com/?q=a%20b%2Bc&r=1+2');

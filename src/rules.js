@@ -81,7 +81,14 @@
       'stm_source', 'stm_medium', 'stm_campaign', 'stm_term', 'stm_content',
       'cid_source', 'campaignid', 'adgroupid', 'adid', 'ad_id',
       'assetId', 'wtrid', 'xtor', 'wt_mc', 'wt_zmc', 'os_ehash',
-      'tracking_source', 'Echobox',
+      'tracking_source', 'Echobox', 'WT.mc_id', 'WT.nav', 'hootPostID',
+      'wprov', 'mkwid', 'pcrid', 'sms_click', 'sms_source', 'sms_uph',
+
+      // Email marketing: Bronto, GoDaddy, dotdigital
+      '_bta_tid', '_bta_c', 'gdfms', 'gdftrk', 'gdffi', 'dm_i',
+
+      // Branch.io deep links, used by many apps
+      '_branch_match_id', '_branch_referrer',
 
       // Seznam's recommendation widget (Czech news sites)
       'dop_ab_variant', 'dop_source_zone_name', 'dop_req_id', 'dop_id',
@@ -97,6 +104,7 @@
       '^matomo_',
       '^mtm_',
       '^hsa_',
+      '^trk_',
       '^__hs',
       '^_hs(enc|mi)$',
       '^at_(medium|campaign|custom\\d|link_|recipient|creation|variant|type|format|general|emailtype|send_date|ptr_)',
@@ -167,14 +175,14 @@
         dnrDomains: ['reddit.com', 'redd.it'],
         params: ['share_id', 'correlation_id', 'ref_campaign', 'ref_source',
                  'rdt', 'post_fullname', '$deep_link', '$original_url',
-                 '_branch_match_id', '_branch_referrer', 'chainedPosts',
+                 'chainedPosts',
                  '$3p'],
       },
       {
         name: 'Spotify',
         hosts: ['spotify.com', 'spotify.link'],
         dnrDomains: ['spotify.com', 'spotify.link'],
-        params: ['si', 'nd', 'nid', '_branch_match_id'],
+        params: ['si', 'nd', 'nid'],
       },
       {
         name: 'LinkedIn',
