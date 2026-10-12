@@ -71,11 +71,14 @@
   }
   .name.removed { color: var(--removed); background: var(--removed-bg); text-decoration: line-through; }
   .name.kept { color: var(--kept); background: var(--kept-bg); }
-  .url {
-    margin-top: 6px; font: 11px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
-    word-break: break-all; color: var(--muted);
+  /* One column of labels, one of URLs, so every URL starts at the same place. */
+  .urls {
+    display: grid; grid-template-columns: 11ch 1fr; gap: 2px 8px; margin-top: 6px;
+    font: 11px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
   }
-  .url b { color: var(--fg); font-weight: 400; }
+  .urls .label { color: var(--muted); white-space: nowrap; }
+  .urls .value { word-break: break-all; }
+  .urls .value .gone { color: var(--removed); background: var(--removed-bg); border-radius: 3px; }
   .empty { color: var(--muted); text-align: center; padding: 40px 0; }
 </style>
 </head>

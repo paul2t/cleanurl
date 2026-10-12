@@ -46,6 +46,29 @@
     return haystack.includes(query);
   }
 
+  /*
+   * The URL as text, with each "name=value" whose name was removed marked in
+   * red. Matches after "&" as well as "?", so a parameter that sits in the
+   * path (youtu.be/ID&si=…) is marked too.
+   */
+  function markedUrl(url, removed) {
+    const box = node('span', 'value');
+    const gone = new Set(removed || []);
+    let last = 0;
+    for (const match of String(url || '').matchAll(/[?&]([^?&#=]+)(=[^&#]*)?/g)) {
+      let name = match[1];
+      try {
+        name = decodeURIComponent(name.replace(/\+/g, ' '));
+      } catch (e) { /* keep it as written */ }
+      if (!gone.has(name)) continue;
+      const start = match.index + 1; // the separator stays plain
+      box.append(url.slice(last, start), node('span', 'gone', match[0].slice(1)));
+      last = match.index + match[0].length;
+    }
+    box.append(String(url || '').slice(last));
+    return box;
+  }
+
   function names(list, className) {
     const box = node('div', 'names');
     for (const name of list) box.appendChild(node('span', 'name ' + className, name));
@@ -79,19 +102,17 @@
         item.appendChild(box);
       }
 
-      const from = node('div', 'url');
-      from.append('from ', node('b', '', entry.from));
-      item.appendChild(from);
-      for (const hop of entry.redirects || []) {
-        const line = node('div', 'url');
-        line.append(`redirect by ${hop.by} `, node('b', '', hop.to));
-        item.appendChild(line);
+      const urls = node('div', 'urls');
+      const line = (label, url) => urls.append(node('span', 'label', label),
+        markedUrl(url, entry.removed));
+      line('from', entry.from);
+      for (const hop of entry.redirects || []) line('↳ ' + hop.by, hop.to);
+      const lastHop = (entry.redirects || []).slice(-1)[0];
+      // Skip "to" when it would only repeat the line above it.
+      if (entry.to && entry.to !== entry.from && !(lastHop && lastHop.to === entry.to)) {
+        line('to', entry.to);
       }
-      if (entry.to && entry.to !== entry.from) {
-        const to = node('div', 'url');
-        to.append('to ', node('b', '', entry.to));
-        item.appendChild(to);
-      }
+      item.appendChild(urls);
       el.log.appendChild(item);
     }
   }
