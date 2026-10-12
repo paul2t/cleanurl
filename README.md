@@ -83,7 +83,8 @@ so on. Run the extension's **Settings** page for the full list.
 Two deliberate omissions:
 
 - **Affiliate tags are kept by default.** They pay whoever shared the link, so
-  removing them is a choice rather than a fix. There is a switch for it.
+  removing them is a choice rather than a fix. There is a switch for it, which
+  also unwraps affiliate network redirect links (Awin, Skimlinks, VigLink, CJ…).
 - **Nothing load-bearing is ever touched** — `code`, `state`, `token`,
   `redirect_uri`, `q`, `v`, `id`, `page` and friends. A test asserts this.
 

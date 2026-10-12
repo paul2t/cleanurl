@@ -210,6 +210,25 @@ url('vk away.php on the bare domain',
   'https://vk.com/away.php?to=https%3A%2F%2Fexample.com%2F&cc_key=',
   'https://example.com/');
 
+/* Affiliate network links pay the sharer: unwrapped only on opt-in, and
+ * never edited either way. */
+{
+  const awin = 'https://www.awin1.com/cread.php?awinmid=1&awinaffid=2&ued=' +
+    'https%3A%2F%2Fshop.example%2Fitem%3Futm_source%3Dawin';
+  url('affiliate redirect left whole by default', awin, awin);
+  url('affiliate redirect unwrapped when affiliate removal is on', awin,
+    'https://shop.example/item', { removeAffiliate: true });
+  url('affiliate redirect untouched when unwrapping is off', awin, awin,
+    { removeAffiliate: true, unwrapRedirects: false });
+
+  const cj = 'https://www.anrdoezrs.net/click-123-456?url=https%3A%2F%2Fshop.example%2F&sid=x';
+  url('cj click link unwrapped on opt-in', cj, 'https://shop.example/',
+    { removeAffiliate: true });
+  url('non-affiliate redirects still unwrap by default',
+    'https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2F',
+    'https://example.com/');
+}
+
 /*
  * A redirector's parameters are its payload and its signature. google.com/url
  * signs the redirect with usg, and Google puts sa and usg on its own search

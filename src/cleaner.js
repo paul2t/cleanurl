@@ -248,17 +248,18 @@
     return RULES.redirects.some((rule) => matchesRedirect(rule, parsed));
   }
 
-  function unwrapRedirect(url, depth) {
+  function unwrapRedirect(url, depth, settings) {
     if (depth > 3) return url;
     for (const rule of RULES.redirects) {
+      if (rule.affiliate && !settings.removeAffiliate) continue;
       if (!matchesRedirect(rule, url)) continue;
       if (rule.rawQueryIsUrl) {
         const target = parseHttpUrl(decodeName(url.search.slice(1)));
-        if (target) return unwrapRedirect(target, depth + 1);
+        if (target) return unwrapRedirect(target, depth + 1, settings);
       }
       for (const param of rule.params || []) {
         const target = parseHttpUrl(url.searchParams.get(param));
-        if (target) return unwrapRedirect(target, depth + 1);
+        if (target) return unwrapRedirect(target, depth + 1, settings);
       }
     }
     return url;
@@ -288,7 +289,7 @@
     if (isAllowlisted(url.hostname, settings.allowlist)) return result;
 
     if (settings.unwrapRedirects) {
-      const target = unwrapRedirect(url, 0);
+      const target = unwrapRedirect(url, 0, settings);
       if (target !== url) {
         if (isAllowlisted(target.hostname, settings.allowlist)) return result;
         url = target;

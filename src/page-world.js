@@ -496,7 +496,10 @@
     ],
 
     /* Interstitial "click through" URLs whose real destination sits in a query
-     * parameter. Unwrapped when cleaning a link (not during navigation). */
+     * parameter. Unwrapped when cleaning a link (not during navigation).
+     * `affiliate: true` marks an affiliate network's link: unwrapping it drops
+     * the sharer's commission, so it only happens when affiliate removal is on.
+     * Either way a redirector's own parameters are never edited. */
     redirects: [
       {
         hostRe: '^(www\\.)?google(\\.[a-z]{2,3}){1,2}$',
@@ -519,8 +522,6 @@
       { hosts: ['youtube.com'], paths: ['/redirect'], params: ['q'] },
       { hosts: ['slack-redir.net'], params: ['url'] },
       { hosts: ['exit.sc', 'gate.sc'], params: ['url'] },
-      { hosts: ['shareasale.com'], params: ['urllink', 'url'] },
-      { hosts: ['click.linksynergy.com'], params: ['murl', 'RD_PARM1'] },
       { hosts: ['linkedin.com'], paths: ['/redir/redirect'], params: ['url'] },
       { hosts: ['href.li'], rawQueryIsUrl: true },
       { hosts: ['bing.com'], paths: ['/newtabredir'], params: ['url'] },
@@ -530,6 +531,23 @@
       { hosts: ['deviantart.com'], paths: ['/users/outgoing'], rawQueryIsUrl: true },
       { hosts: ['mailtrack.io'], params: ['url'] },
       { hosts: ['app.adjust.com'], params: ['redirect'] },
+
+      // Affiliate networks
+      { hosts: ['shareasale.com'], params: ['urllink', 'url'], affiliate: true },
+      { hosts: ['click.linksynergy.com'], params: ['murl', 'RD_PARM1'], affiliate: true },
+      { hosts: ['awin1.com'], params: ['ued'], affiliate: true },
+      { hosts: ['go.skimresources.com'], params: ['url'], affiliate: true },
+      { hosts: ['redirect.viglink.com'], params: ['u'], affiliate: true },
+      { hosts: ['clk.tradedoubler.com'], params: ['url', '_td_deeplink'], affiliate: true },
+      // Commission Junction's click domains
+      { hosts: ['dpbolvw.net', 'anrdoezrs.net', 'jdoqocy.com', 'kqzyfj.com',
+                'tkqlhce.com'], params: ['url'], affiliate: true },
+      { hosts: ['ad.admitad.com'], params: ['ulp'], affiliate: true },
+      { hosts: ['track.webgains.com'], params: ['wgtarget'], affiliate: true },
+      { hosts: ['partner-ads.com'], params: ['htmlurl'], affiliate: true },
+      { hosts: ['track.effiliation.com'], params: ['url'], affiliate: true },
+      { hosts: ['digidip.net'], params: ['url'], affiliate: true },
+      { hosts: ['idealo-partner.com'], params: ['trg'], affiliate: true },
     ],
   };
 
@@ -788,17 +806,18 @@
     return RULES.redirects.some((rule) => matchesRedirect(rule, parsed));
   }
 
-  function unwrapRedirect(url, depth) {
+  function unwrapRedirect(url, depth, settings) {
     if (depth > 3) return url;
     for (const rule of RULES.redirects) {
+      if (rule.affiliate && !settings.removeAffiliate) continue;
       if (!matchesRedirect(rule, url)) continue;
       if (rule.rawQueryIsUrl) {
         const target = parseHttpUrl(decodeName(url.search.slice(1)));
-        if (target) return unwrapRedirect(target, depth + 1);
+        if (target) return unwrapRedirect(target, depth + 1, settings);
       }
       for (const param of rule.params || []) {
         const target = parseHttpUrl(url.searchParams.get(param));
-        if (target) return unwrapRedirect(target, depth + 1);
+        if (target) return unwrapRedirect(target, depth + 1, settings);
       }
     }
     return url;
@@ -828,7 +847,7 @@
     if (isAllowlisted(url.hostname, settings.allowlist)) return result;
 
     if (settings.unwrapRedirects) {
-      const target = unwrapRedirect(url, 0);
+      const target = unwrapRedirect(url, 0, settings);
       if (target !== url) {
         if (isAllowlisted(target.hostname, settings.allowlist)) return result;
         url = target;
