@@ -203,6 +203,21 @@ url('affiliate tag removed when opted in',
   'https://www.amazon.com/dp/B0ABCDEFGH',
   { removeAffiliate: true });
 
+{
+  const gq = 'https://www.amazon.fr/Columbia-Peakfreak-Shandal-Sandale-Mangue/dp/B0D4B63WQG' +
+    '?source=ps-sl-shoppingads-lpcontext&linkCode=sl1&tag=condenastfran-21&language=fr_FR' +
+    '&asc_source=verso&asc_campaign=68668ef6cbf052ce9f5facb3' +
+    '&asc_refurl=https%3A%2F%2Fwww.gqmagazine.fr%2Fgalerie%2Fmeilleures-sandales-de-randonnee-homme' +
+    '&ascsubtag=68668ef6cbf052ce9f5facb3';
+  url('amazon associates link: tracking and referring page go, credit stays', gq,
+    'https://www.amazon.fr/Columbia-Peakfreak-Shandal-Sandale-Mangue/dp/B0D4B63WQG' +
+    '?linkCode=sl1&tag=condenastfran-21&language=fr_FR&asc_campaign=68668ef6cbf052ce9f5facb3' +
+    '&ascsubtag=68668ef6cbf052ce9f5facb3');
+  url('amazon associates link with affiliate removal on', gq,
+    'https://www.amazon.fr/Columbia-Peakfreak-Shandal-Sandale-Mangue/dp/B0D4B63WQG?language=fr_FR',
+    { removeAffiliate: true });
+}
+
 /* ---------------------------------------------------------------- *
  * Redirect unwrapping
  * ---------------------------------------------------------------- */

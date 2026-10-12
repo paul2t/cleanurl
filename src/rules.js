@@ -208,8 +208,11 @@
                  'ref_',
                  'refRID', 'dchild', 'spIA', 'ms3_c', 'aaxitk', 'hsa_cr_id',
                  'social_share', 'starsLeft', 'skipTwisterOG', 'srs', 'colid',
-                 'coliid'],
-        affiliate: ['tag', 'ascsubtag', 'linkCode', 'creative', 'creativeASIN'],
+                 'coliid',
+                 // asc_refurl carries the page the link was clicked on
+                 'source', 'asc_source', 'asc_refurl'],
+        affiliate: ['tag', 'ascsubtag', 'linkCode', 'creative', 'creativeASIN',
+                    'asc_campaign'],
         patterns: ['^cv_ct_', '^sb-ci-'],
       },
       {
