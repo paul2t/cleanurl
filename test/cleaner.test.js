@@ -105,6 +105,14 @@ url('youtube is',
   'https://www.youtube.com/watch?v=abc&is=Xy12AbCd',
   'https://www.youtube.com/watch?v=abc');
 
+url('youtu.be share ids after "&" in the path',
+  'https://youtu.be/VNvErq7nseM&is=12345&si=abc',
+  'https://youtu.be/VNvErq7nseM');
+
+url('youtu.be path keeps a timestamp after "&"',
+  'https://youtu.be/VNvErq7nseM&t=42&si=abc',
+  'https://youtu.be/VNvErq7nseM&t=42');
+
 url('instagram igsh',
   'https://www.instagram.com/p/Cx1y2z3/?igsh=MWQx%3D%3D&img_index=1',
   'https://www.instagram.com/p/Cx1y2z3/?img_index=1');

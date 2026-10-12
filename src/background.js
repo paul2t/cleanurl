@@ -357,78 +357,84 @@ function recordOpened(tabId, from, to, removed) {
  * One log entry per top-level navigation that carried a query string, written
  * once it finishes: the URL it started from, every redirect on the way and
  * who made it, what our rules removed, and what was still there at the end.
+ *
+ * Tracked per tab rather than per requestId, and built from every event
+ * rather than trusting any single one, because Chrome reports a navigation
+ * less tidily than that:
+ *
+ * - It often aborts the first attempt (net::ERR_ABORTED) and starts again
+ *   under a new requestId, sometimes from the URL a redirect led to. A request
+ *   that starts at the URL the tab's navigation last reached continues it.
+ * - When a rule rewrites the target of a server redirect, some versions fire
+ *   no onBeforeRedirect at all, and the cleaned URL first shows up at
+ *   onResponseStarted; others fire it, then report the URL from before the
+ *   rewrite at onCompleted. So the navigation's URL is the newest one seen,
+ *   and an event naming an earlier one is old news.
  */
 function watchNavigations() {
   if (!DEBUG) return;
   const filter = { urls: ['http://*/*', 'https://*/*'], types: ['main_frame'] };
-  const pending = new Map();
+  const navigations = new Map(); // tabId -> navigation
+  const ABORT_GRACE_MS = 1500;
 
-  chrome.webRequest.onBeforeRequest.addListener((details) => {
-    if (details.tabId < 0) return;
-    // Fires again after each redirect with the same requestId.
-    if (!pending.has(details.requestId)) {
-      pending.set(details.requestId, { from: details.url, removed: [], redirects: [] });
-    }
-    // A new page in the tab: whatever was recorded for the previous one is
-    // stale. A reload of the cleaned URL keeps it, as that is the same page.
-    serial(async () => {
-      const previous = await getOpened(details.tabId);
-      if (previous && withoutHash(previous.cleaned) !== withoutHash(details.url)) {
-        await sessionSet(openedKey(details.tabId), undefined);
-      }
-    });
-  }, filter);
+  function current(navigation) {
+    return navigation.chain[navigation.chain.length - 1];
+  }
 
-  chrome.webRequest.onBeforeRedirect.addListener((details) => {
-    if (details.tabId < 0 || !details.redirectUrl) return;
-    const navigation = pending.get(details.requestId);
-    const hop = { to: details.redirectUrl, by: 'server' };
-    if (navigation) navigation.redirects.push(hop);
+  /*
+   * The step from `from` to `to`. Ours only ever removes query parameters, so
+   * anything else is the server's - and so is a removal of a name our rules do
+   * not remove: a site may redirect to drop its own parameters.
+   */
+  function step(tabId, navigation, from, to) {
+    if (navigation.chain.indexOf(to) === -1) navigation.chain.push(to);
+    const hop = { to: to, by: 'server' };
+    navigation.redirects.push(hop);
 
-    let from;
-    let to;
+    let a;
+    let b;
     try {
-      from = new URL(details.url);
-      to = new URL(details.redirectUrl);
+      a = new URL(from);
+      b = new URL(to);
     } catch (e) {
       return;
     }
-    // Ours only ever removes query parameters; anything else is the server's.
-    if (from.origin !== to.origin || from.pathname !== to.pathname) return;
-    const kept = new Set(to.searchParams.keys());
-    const removed = queryNames(from).filter((name) => !kept.has(name));
+    if (a.origin !== b.origin || a.pathname !== b.pathname) return;
+    const left = new Set(b.searchParams.keys());
+    const removed = queryNames(a).filter((name) => !left.has(name));
     if (!removed.length) return;
 
-    /*
-     * A site that redirects to drop its own parameters is not ours to claim:
-     * only call it ours when every name gone is one our rules remove. The
-     * check is kept on the navigation so its log entry waits for the answer.
-     */
-    if (navigation) navigation.check = Settings.load().then((settings) => {
-      const ours = Clean.cleanUrl(details.url, Object.assign({}, settings, {
+    // Kept on the navigation so its log entry waits for the answer.
+    navigation.checks.push(Settings.load().then((settings) => {
+      const ours = Clean.cleanUrl(from, Object.assign({}, settings, {
         unwrapRedirects: false,
       }));
       if (!removed.every((name) => ours.removed.indexOf(name) !== -1)) return;
       hop.by = 'CleanURL';
       navigation.removed.push(...removed);
       recordCleaned('url', removed.length);
-      recordOpened(details.tabId, details.url, details.redirectUrl, removed);
-    });
-  }, filter);
+      recordOpened(tabId, from, to, removed);
+    }));
+  }
 
-  function finish(details, note) {
-    const navigation = pending.get(details.requestId);
+  function finish(tabId, note) {
+    const navigation = navigations.get(tabId);
     if (!navigation) return;
-    pending.delete(details.requestId);
-    Promise.resolve(navigation.check).then(() => {
-      const kept = keptNames(details.url);
-      if (!navigation.removed.length && !kept.length) return; // nothing to see
+    navigations.delete(tabId);
+    clearTimeout(navigation.timer);
+    Promise.all(navigation.checks).then(() => {
+      const to = current(navigation);
+      const removed = Array.from(new Set(navigation.removed));
+      // A name can be both: removed on the way, then put back by a later
+      // redirect. Whatever made it to the end was kept.
+      const kept = keptNames(to);
+      if (!removed.length && !kept.length) return; // nothing to see
       debugLog({
         kind: 'navigation',
-        tabId: details.tabId,
-        from: navigation.from,
-        to: details.url,
-        removed: navigation.removed,
+        tabId: tabId,
+        from: navigation.chain[0],
+        to: to,
+        removed: removed.filter((name) => kept.indexOf(name) === -1),
         kept: kept,
         redirects: navigation.redirects,
         note: note,
@@ -436,11 +442,60 @@ function watchNavigations() {
     });
   }
 
-  chrome.webRequest.onCompleted.addListener((details) => finish(details), filter);
-  chrome.webRequest.onErrorOccurred.addListener(
-    (details) => finish(details, details.error), filter);
+  /** The URL a request reached, from an event that may be reporting old news. */
+  function reached(tabId, url) {
+    const navigation = navigations.get(tabId);
+    if (!navigation || navigation.chain.indexOf(url) !== -1) return;
+    step(tabId, navigation, current(navigation), url);
+  }
+
+  chrome.webRequest.onBeforeRequest.addListener((details) => {
+    const tabId = details.tabId;
+    if (tabId < 0) return;
+    const navigation = navigations.get(tabId);
+    if (navigation && current(navigation) === details.url) {
+      // A redirect being followed, or an aborted attempt starting over.
+      clearTimeout(navigation.timer);
+    } else {
+      if (navigation) finish(tabId, 'superseded');
+      navigations.set(tabId, { chain: [details.url], redirects: [], removed: [], checks: [] });
+    }
+    // A new page in the tab: whatever was recorded for the previous one is
+    // stale. A reload of the cleaned URL keeps it, as that is the same page.
+    serial(async () => {
+      const previous = await getOpened(tabId);
+      if (previous && withoutHash(previous.cleaned) !== withoutHash(details.url)) {
+        await sessionSet(openedKey(tabId), undefined);
+      }
+    });
+  }, filter);
+
+  chrome.webRequest.onBeforeRedirect.addListener((details) => {
+    const navigation = navigations.get(details.tabId);
+    if (!navigation || !details.redirectUrl) return;
+    step(details.tabId, navigation, details.url, details.redirectUrl);
+  }, filter);
+
+  chrome.webRequest.onResponseStarted.addListener((details) => {
+    reached(details.tabId, details.url);
+  }, filter);
+
+  chrome.webRequest.onCompleted.addListener((details) => {
+    reached(details.tabId, details.url);
+    finish(details.tabId);
+  }, filter);
+
+  // An abort is usually Chrome starting the same navigation over, so wait a
+  // moment for the restart before calling it finished.
+  chrome.webRequest.onErrorOccurred.addListener((details) => {
+    const navigation = navigations.get(details.tabId);
+    if (!navigation) return;
+    clearTimeout(navigation.timer);
+    navigation.timer = setTimeout(() => finish(details.tabId, details.error), ABORT_GRACE_MS);
+  }, filter);
 
   chrome.tabs.onRemoved.addListener((tabId) => {
+    finish(tabId, 'tab closed');
     serial(() => sessionSet(openedKey(tabId), undefined));
   });
 }

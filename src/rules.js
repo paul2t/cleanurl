@@ -481,6 +481,16 @@
     /* Tracking baked into the path rather than the query string. */
     pathRules: [
       {
+        // youtu.be/ID&si=… - an "&" where the "?" should be, so the share ids
+        // are part of the path and the network rules cannot see them. The
+        // server turns them back into parameters on youtube.com, where they
+        // are removed, but a copied link would still carry them.
+        name: 'youtu.be share ids after "&" in the path',
+        hosts: ['youtu.be'],
+        re: '&(?:si|is|pp|feature)=[^&/?#]*',
+        replace: '',
+      },
+      {
         name: 'Amazon /ref= path segment',
         hosts: ['amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
                 'amazon.it', 'amazon.es', 'amazon.ca', 'amazon.co.jp',

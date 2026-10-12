@@ -392,7 +392,8 @@ function loadWithWebRequest(permissions) {
     chrome: {
       webRequest: {
         onBeforeRequest: on('request'), onBeforeRedirect: on('redirect'),
-        onCompleted: on('completed'), onErrorOccurred: on('error'),
+        onResponseStarted: on('started'), onCompleted: on('completed'),
+        onErrorOccurred: on('error'),
       },
       runtime: { onInstalled: on('x'), onStartup: on('x'), onMessage: on('message'),
                  lastError: null, getManifest: () => ({ permissions: permissions }) },
@@ -490,6 +491,71 @@ function loadWithWebRequest(permissions) {
     listeners.removed(4);
     await settle();
     eq('closing the tab forgets it', await ask(4), null);
+
+    /*
+     * What Chrome actually reports, captured from a real run. Each pattern
+     * broke the first version of the log in its own way.
+     */
+    const fire = (name, tabId, details) =>
+      listeners[name](Object.assign({ tabId: tabId, type: 'main_frame' }, details));
+    const shortLink = 'https://youtu.be/VNvErq7nseM&is=12345';
+    const served = 'https://www.youtube.com/watch?v=VNvErq7nseM&is=12345&feature=youtu.be';
+    const cleaned = 'https://www.youtube.com/watch?v=VNvErq7nseM';
+
+    // Chrome 148: a rule rewriting a server redirect's target fires no
+    // onBeforeRedirect; the cleaned URL first appears at onResponseStarted.
+    fire('request', 5, { requestId: '50', url: shortLink });
+    fire('redirect', 5, { requestId: '50', url: shortLink, redirectUrl: served });
+    fire('request', 5, { requestId: '50', url: served });
+    fire('started', 5, { requestId: '50', url: cleaned });
+    fire('completed', 5, { requestId: '50', url: cleaned });
+    await settle();
+    entry = lastLog();
+    eq('a silent rewrite of a redirect target is found', entry && entry.removed.join(), 'is,feature');
+    eq('the entry starts at the link that was opened', entry && entry.from, shortLink);
+    eq('and ends at the cleaned URL', entry && entry.to, cleaned);
+    eq('with both redirects, credited correctly',
+      entry && entry.redirects.map((hop) => hop.by).join(), 'server,CleanURL');
+
+    // Chrome 155: the rewrite has its redirect event, but onCompleted then
+    // names the URL from before it.
+    fire('request', 6, { requestId: '60', url: shortLink });
+    fire('redirect', 6, { requestId: '60', url: shortLink, redirectUrl: served });
+    fire('request', 6, { requestId: '60', url: served });
+    fire('redirect', 6, { requestId: '60', url: served, redirectUrl: cleaned });
+    fire('request', 6, { requestId: '60', url: cleaned });
+    fire('completed', 6, { requestId: '60', url: served });
+    await settle();
+    entry = lastLog();
+    eq('a stale URL at onCompleted does not undo the cleanup', entry && entry.to, cleaned);
+    eq('so nothing removed is also listed as kept', entry && entry.kept.join(), 'v');
+
+    // Chrome aborts the first attempt and starts over under a new requestId.
+    const before2 = (store.debugLog || []).length;
+    fire('request', 7, { requestId: '70', url: 'https://example.com/a?si=1&utm_source=x' });
+    fire('redirect', 7, { requestId: '70', url: 'https://example.com/a?si=1&utm_source=x',
+      redirectUrl: 'https://example.com/a?si=1' });
+    fire('request', 7, { requestId: '70', url: 'https://example.com/a?si=1' });
+    fire('error', 7, { requestId: '70', url: 'https://example.com/a?si=1', error: 'net::ERR_ABORTED' });
+    fire('request', 7, { requestId: '71', url: 'https://example.com/a?si=1' });
+    fire('completed', 7, { requestId: '71', url: 'https://example.com/a?si=1' });
+    await settle();
+    eq('an aborted attempt and its restart make one entry',
+      (store.debugLog || []).length, before2 + 1);
+    entry = lastLog();
+    eq('which starts where the first attempt did',
+      entry && entry.from, 'https://example.com/a?si=1&utm_source=x');
+    eq('and is not marked as an error', entry && entry.note, undefined);
+
+    // An abort nobody restarts is logged after a grace period, with the error.
+    fire('request', 8, { requestId: '80', url: 'https://example.com/b?utm_source=x' });
+    fire('error', 8, { requestId: '80', url: 'https://example.com/b?utm_source=x',
+      error: 'net::ERR_ABORTED' });
+    await new Promise((resolve) => setTimeout(resolve, 1700));
+    entry = lastLog();
+    eq('an abandoned navigation is still logged', entry && entry.from,
+      'https://example.com/b?utm_source=x');
+    eq('with its error', entry && entry.note, 'net::ERR_ABORTED');
   })().catch((error) => ok('debug build tests ran', false, error.stack)));
 }
 

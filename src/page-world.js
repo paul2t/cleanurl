@@ -493,6 +493,16 @@
     /* Tracking baked into the path rather than the query string. */
     pathRules: [
       {
+        // youtu.be/ID&si=… - an "&" where the "?" should be, so the share ids
+        // are part of the path and the network rules cannot see them. The
+        // server turns them back into parameters on youtube.com, where they
+        // are removed, but a copied link would still carry them.
+        name: 'youtu.be share ids after "&" in the path',
+        hosts: ['youtu.be'],
+        re: '&(?:si|is|pp|feature)=[^&/?#]*',
+        replace: '',
+      },
+      {
         name: 'Amazon /ref= path segment',
         hosts: ['amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
                 'amazon.it', 'amazon.es', 'amazon.ca', 'amazon.co.jp',
@@ -602,15 +612,16 @@
   }
 
   const reCache = new Map();
-  function toRegExp(source) {
-    let re = reCache.get(source);
+  function toRegExp(source, flags) {
+    const key = (flags || 'i') + ':' + source;
+    let re = reCache.get(key);
     if (!re) {
       try {
-        re = new RegExp(source, 'i');
+        re = new RegExp(source, flags || 'i');
       } catch (e) {
         re = /(?!)/; // never matches
       }
-      reCache.set(source, re);
+      reCache.set(key, re);
     }
     return re;
   }
@@ -885,7 +896,8 @@
     let pathChanged = false;
     for (const rule of RULES.pathRules) {
       if (!ruleMatchesHost(rule, url.hostname)) continue;
-      const next = url.pathname.replace(toRegExp(rule.re), rule.replace);
+      // Global: a path can carry the same tracker more than once.
+      const next = url.pathname.replace(toRegExp(rule.re, 'gi'), rule.replace);
       if (next !== url.pathname) {
         url.pathname = next || '/';
         pathChanged = true;
