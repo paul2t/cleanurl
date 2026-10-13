@@ -22,7 +22,7 @@ grep -rnE "(src|href)=\"https?:" src/*.html
 
 ## Summary (the 132-character field)
 
-Pick one. Counts are in the check below.
+The dashboard takes this from `description` in manifest.json (132 characters at most), so it changes with a release, not in the dashboard. Since 1.0.11 it is option 0. Counts are in the check below.
 
 0. Removes 630+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent. (124)
 1. Removes tracking parameters and share IDs from links before they load, and from links you copy.
