@@ -1,4 +1,6 @@
 node_modules/
+# No dependencies: npx (e.g. for web-ext) writes an empty one.
+package-lock.json
 dist/
 *.log
 .DS_Store
