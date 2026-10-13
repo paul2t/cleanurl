@@ -118,13 +118,15 @@ That is the extension's only function. It has no other feature, does not alter p
 
 ---
 
-## declarativeNetRequest (954/1000)
+## declarativeNetRequestWithHostAccess (898/1000)
 
-CleanURL removes tracking parameters (utm_*, gclid, fbclid, and share IDs such as YouTube's "si") from URLs. declarativeNetRequest is what applies this to a navigation before the request is sent, so the tracker never reaches the server and never appears in the address bar or history.
+Requested instead of declarativeNetRequest as the narrower permission: rules act only where the extension has host access, which redirect rules need anyway.
 
-The rules are generated at startup from a static parameter list shipped inside the package (src/rules.js). They use only the "redirect" action with queryTransform.removeParams, plus "allow" rules for sites the user has added to their allowlist. Every rule is scoped to resourceTypes ["main_frame"] and requestMethods ["get"], so sub-resources and form submissions are never touched.
+It removes tracking parameters (utm_*, gclid, fbclid, share IDs) from a navigation before the request is sent, so they never reach the server, the address bar or history. Acting after page load would mean they had already been sent.
 
-The extension does not block, throttle or inspect any request, does not read request bodies, and no rule is ever fetched from a server. This API is the only way to modify a URL before the request leaves the browser; acting after page load would mean the tracker had already been sent.
+The rules are generated at startup from a static list in the package (src/rules.js). They use only "redirect" with queryTransform.removeParams, plus "allow" rules for sites on the user's allowlist and for redirect links, whose parameters are their destination. Every rule is scoped to resourceTypes ["main_frame"] and requestMethods ["get"], so sub-resources and form submissions are never touched.
+
+Nothing is blocked, throttled or inspected, no request body is read, and no rule is fetched from a server.
 
 ---
 

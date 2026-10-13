@@ -388,6 +388,10 @@ since a page can see those events.
 
 ## Permissions
 
+`declarativeNetRequestWithHostAccess` rather than `declarativeNetRequest`: it is
+the narrower permission, acting only where the extension has host access, and
+it adds no "Block content on any page" warning at install.
+
 `<all_urls>` is unavoidable: `declarativeNetRequest` will only *redirect* a
 request when the extension has host access to it, and the copy interception has
 to be present wherever a share button is.

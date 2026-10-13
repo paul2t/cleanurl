@@ -32,7 +32,14 @@ function eq(label, actual, expected) {
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
 
 eq('manifest version 3', manifest.manifest_version, 3);
-ok('declares declarativeNetRequest', manifest.permissions.includes('declarativeNetRequest'));
+/*
+ * The narrower of the two: the rules only act where the extension already has
+ * host access, which it has everywhere, and installing it shows no "Block
+ * content on any page" warning. The store asks for the least access that works.
+ */
+ok('declares declarativeNetRequestWithHostAccess',
+  manifest.permissions.includes('declarativeNetRequestWithHostAccess'));
+ok('not the broader declarativeNetRequest', !manifest.permissions.includes('declarativeNetRequest'));
 ok('declares host permissions', manifest.host_permissions.includes('<all_urls>'));
 
 /* The popup's "Clean clipboard link" button cannot read anything without it. */
@@ -443,7 +450,7 @@ function loadWithWebRequest(permissions) {
 }
 
 {
-  const packaged = loadWithWebRequest(['declarativeNetRequest', 'storage']);
+  const packaged = loadWithWebRequest(['declarativeNetRequestWithHostAccess', 'storage']);
   ok('a package registers no webRequest listeners, even if the API exists',
     !packaged.listeners.request && !packaged.listeners.redirect);
 }
@@ -454,7 +461,7 @@ function loadWithWebRequest(permissions) {
  * keeps the original per tab from the redirect webRequest reports.
  */
 {
-  const { sandbox: bg, listeners, store } = loadWithWebRequest(['declarativeNetRequest', 'webRequest']);
+  const { sandbox: bg, listeners, store } = loadWithWebRequest(['declarativeNetRequestWithHostAccess', 'webRequest']);
   let requestId = 0;
 
   const ask = (tabId) => new Promise((resolve) =>

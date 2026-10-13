@@ -74,6 +74,14 @@ async function main() {
     eq('a share button copy is cleaned', await page.eval('navigator.clipboard.readText()'),
       'see https://shop.example/item?color=red');
 
+    /* ---- allow rules: a site on the allowlist is left alone ---------- */
+    await browser.sw.eval(`chrome.storage.sync.set({ allowlist: ['127.0.0.1'] })`);
+    await sleep(800); // the rules are rebuilt on the change
+    const allowed = await browser.open(`${site}/f?utm_source=x&keep=1`);
+    eq('an allowlisted site keeps its parameters', await href(allowed), `${site}/f?utm_source=x&keep=1`);
+    await browser.sw.eval(`chrome.storage.sync.set({ allowlist: [] })`);
+    await sleep(800);
+
     /* ---- popup ------------------------------------------------------ */
     const fresh = await browser.open(`${site}/d?ref_src=x&fbclid=1&q=keep`);
     await browser.send('Target.activateTarget', { targetId: fresh.id });
