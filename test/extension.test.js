@@ -421,7 +421,7 @@ function loadWithWebRequest(permissions) {
  * keeps the original per tab from the redirect webRequest reports.
  */
 {
-  const { listeners, store } = loadWithWebRequest(['declarativeNetRequest', 'webRequest']);
+  const { sandbox: bg, listeners, store } = loadWithWebRequest(['declarativeNetRequest', 'webRequest']);
   let requestId = 0;
 
   const ask = (tabId) => new Promise((resolve) =>
@@ -501,6 +501,10 @@ function loadWithWebRequest(permissions) {
     await navigate(9, 'https://example.com/?utm_new_thing=1');
     eq('a name left only because the network rules cannot match it is not affiliate',
       lastLog() && lastLog().affiliate.join(), '');
+    const defaults = bg.CleanURLSettings.normalize(null);
+    eq('affiliate credit is still named as such when it is removed',
+      bg.affiliateNames('https://www.amazon.fr/dp/B0?tag=pub-21&utm_source=x',
+        Object.assign({}, defaults, { removeAffiliate: true })).join(), 'tag');
 
     /*
      * What Chrome actually reports, captured from a real run. Each pattern

@@ -47,8 +47,8 @@
   }
 
   /*
-   * The URL as text, with each "name=value" marked: red when the name was
-   * removed, yellow when it was left as affiliate credit. Matches after "&" as
+   * The URL as text, with each "name=value" marked: yellow when the name is
+   * affiliate credit, removed or not, red when it was removed otherwise. Matches after "&" as
    * well as "?", so a parameter that sits in the path (youtu.be/ID&si=…) is
    * marked too.
    */
@@ -62,19 +62,13 @@
       try {
         name = decodeURIComponent(name.replace(/\+/g, ' '));
       } catch (e) { /* keep it as written */ }
-      const className = gone.has(name) ? 'gone' : credit.has(name) ? 'affiliate' : '';
+      const className = credit.has(name) ? 'affiliate' : gone.has(name) ? 'gone' : '';
       if (!className) continue;
       const start = match.index + 1; // the separator stays plain
       box.append(url.slice(last, start), node('span', className, match[0].slice(1)));
       last = match.index + match[0].length;
     }
     box.append(String(url || '').slice(last));
-    return box;
-  }
-
-  function names(list, className) {
-    const box = node('div', 'names');
-    for (const name of list) box.appendChild(node('span', 'name ' + className, name));
     return box;
   }
 
@@ -100,11 +94,14 @@
       item.appendChild(meta);
 
       if ((entry.removed && entry.removed.length) || (entry.kept && entry.kept.length)) {
-        const box = names(entry.removed || [], 'removed');
         const affiliate = entry.affiliate || [];
+        const isAffiliate = (name) => affiliate.indexOf(name) !== -1;
+        const box = node('div', 'names');
+        for (const name of entry.removed || []) {
+          box.appendChild(node('span', 'name removed' + (isAffiliate(name) ? ' affiliate' : ''), name));
+        }
         for (const name of entry.kept || []) {
-          box.appendChild(node('span',
-            'name ' + (affiliate.indexOf(name) !== -1 ? 'affiliate' : 'kept'), name));
+          box.appendChild(node('span', 'name ' + (isAffiliate(name) ? 'affiliate' : 'kept'), name));
         }
         item.appendChild(box);
       }

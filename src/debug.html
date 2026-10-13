@@ -76,6 +76,7 @@
   .name.removed { color: var(--removed); background: var(--removed-bg); text-decoration: line-through; }
   .name.kept { color: var(--kept); background: var(--kept-bg); }
   .name.affiliate { color: var(--affiliate); background: var(--affiliate-bg); }
+  .name.affiliate.removed { text-decoration: line-through; }
   /* One column of labels, one of URLs, so every URL starts at the same place. */
   .urls {
     display: grid; grid-template-columns: 11ch 1fr; gap: 2px 8px; margin-top: 6px;
@@ -98,8 +99,8 @@
   </header>
   <p class="legend">
     Newest first. <span class="name removed">removed</span> was taken out;
-    <span class="name affiliate">affiliate</span> was left as credit for whoever
-    shared the link (see "Also remove affiliate tags");
+    <span class="name affiliate">affiliate</span> is credit for whoever shared
+    the link, crossed out when "Also remove affiliate tags" took it out;
     <span class="name kept">kept</span> was still there afterwards, which is
     where a missing rule shows up. Held in memory only, until the browser closes.
   </p>

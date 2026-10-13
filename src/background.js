@@ -312,13 +312,14 @@ function keptNames(text) {
 }
 
 /*
- * Of the names left in `text`, those kept only because they are affiliate
- * credit: what turning affiliate removal on would take out on top of what the
- * current settings already would. Comparing the two keeps out anything left
- * for another reason, such as a wildcard name the network rules cannot match.
+ * The names in `text` that are affiliate credit, whether or not the settings
+ * remove them: what affiliate removal takes out on top of what is removed
+ * without it. Comparing the two keeps out names that are only tracking.
  */
 function affiliateNames(text, settings) {
-  const base = Object.assign({}, settings, { enabled: true, unwrapRedirects: false });
+  const base = Object.assign({}, settings, {
+    enabled: true, unwrapRedirects: false, removeAffiliate: false,
+  });
   const without = Clean.cleanText(String(text || ''), base).removed;
   const withAffiliate = Clean.cleanText(String(text || ''),
     Object.assign({}, base, { removeAffiliate: true })).removed;
@@ -327,8 +328,9 @@ function affiliateNames(text, settings) {
 
 /**
  * Appends to the debug log, newest last, and echoes it to the worker's
- * console. `entry`: { kind, tabId, from, to, removed, kept, note }. The
- * kept names that are affiliate credit are worked out here, as `affiliate`.
+ * console. `entry`: { kind, tabId, from, to, removed, kept, note }. Which
+ * names are affiliate credit, removed or kept, is worked out here, as
+ * `affiliate`.
  */
 function debugLog(entry) {
   if (!DEBUG) return Promise.resolve();
@@ -337,8 +339,9 @@ function debugLog(entry) {
     'removed:', record.removed, 'kept:', record.kept, record.note || '');
   return serial(async () => {
     const settings = await Settings.load();
-    record.affiliate = affiliateNames(record.to, settings)
-      .filter((name) => record.kept.indexOf(name) !== -1);
+    // Every URL on the way, so credit a redirect added or removed counts too.
+    const urls = [record.from, ...(record.redirects || []).map((hop) => hop.to), record.to];
+    record.affiliate = affiliateNames(urls.join(' '), settings);
     const log = (await sessionGet(LOG_KEY)) || [];
     log.push(record);
     await sessionSet(LOG_KEY, log.slice(-LOG_LIMIT));
