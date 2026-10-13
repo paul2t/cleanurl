@@ -311,9 +311,24 @@ function keptNames(text) {
   return Array.from(names);
 }
 
+/*
+ * Of the names left in `text`, those kept only because they are affiliate
+ * credit: what turning affiliate removal on would take out on top of what the
+ * current settings already would. Comparing the two keeps out anything left
+ * for another reason, such as a wildcard name the network rules cannot match.
+ */
+function affiliateNames(text, settings) {
+  const base = Object.assign({}, settings, { enabled: true, unwrapRedirects: false });
+  const without = Clean.cleanText(String(text || ''), base).removed;
+  const withAffiliate = Clean.cleanText(String(text || ''),
+    Object.assign({}, base, { removeAffiliate: true })).removed;
+  return withAffiliate.filter((name) => without.indexOf(name) === -1);
+}
+
 /**
  * Appends to the debug log, newest last, and echoes it to the worker's
- * console. `entry`: { kind, tabId, from, to, removed, kept, note }.
+ * console. `entry`: { kind, tabId, from, to, removed, kept, note }. The
+ * kept names that are affiliate credit are worked out here, as `affiliate`.
  */
 function debugLog(entry) {
   if (!DEBUG) return Promise.resolve();
@@ -321,6 +336,9 @@ function debugLog(entry) {
   console.debug('[CleanURL]', record.kind, record.from, '->', record.to,
     'removed:', record.removed, 'kept:', record.kept, record.note || '');
   return serial(async () => {
+    const settings = await Settings.load();
+    record.affiliate = affiliateNames(record.to, settings)
+      .filter((name) => record.kept.indexOf(name) !== -1);
     const log = (await sessionGet(LOG_KEY)) || [];
     log.push(record);
     await sessionSet(LOG_KEY, log.slice(-LOG_LIMIT));

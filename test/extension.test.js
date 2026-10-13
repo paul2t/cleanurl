@@ -492,6 +492,16 @@ function loadWithWebRequest(permissions) {
     await settle();
     eq('closing the tab forgets it', await ask(4), null);
 
+    // Kept names split into affiliate credit and everything else.
+    await navigate(9, 'https://www.amazon.fr/dp/B0?tag=pub-21&utm_source=x&th=1&color=red',
+      'https://www.amazon.fr/dp/B0?tag=pub-21&color=red');
+    entry = lastLog();
+    eq('affiliate credit left in place is marked as such', entry && entry.affiliate.join(), 'tag');
+    eq('and is still listed as kept', entry && entry.kept.join(), 'tag,color');
+    await navigate(9, 'https://example.com/?utm_new_thing=1');
+    eq('a name left only because the network rules cannot match it is not affiliate',
+      lastLog() && lastLog().affiliate.join(), '');
+
     /*
      * What Chrome actually reports, captured from a real run. Each pattern
      * broke the first version of the log in its own way.

@@ -47,22 +47,25 @@
   }
 
   /*
-   * The URL as text, with each "name=value" whose name was removed marked in
-   * red. Matches after "&" as well as "?", so a parameter that sits in the
-   * path (youtu.be/ID&si=…) is marked too.
+   * The URL as text, with each "name=value" marked: red when the name was
+   * removed, yellow when it was left as affiliate credit. Matches after "&" as
+   * well as "?", so a parameter that sits in the path (youtu.be/ID&si=…) is
+   * marked too.
    */
-  function markedUrl(url, removed) {
+  function markedUrl(url, removed, affiliate) {
     const box = node('span', 'value');
     const gone = new Set(removed || []);
+    const credit = new Set(affiliate || []);
     let last = 0;
     for (const match of String(url || '').matchAll(/[?&]([^?&#=]+)(=[^&#]*)?/g)) {
       let name = match[1];
       try {
         name = decodeURIComponent(name.replace(/\+/g, ' '));
       } catch (e) { /* keep it as written */ }
-      if (!gone.has(name)) continue;
+      const className = gone.has(name) ? 'gone' : credit.has(name) ? 'affiliate' : '';
+      if (!className) continue;
       const start = match.index + 1; // the separator stays plain
-      box.append(url.slice(last, start), node('span', 'gone', match[0].slice(1)));
+      box.append(url.slice(last, start), node('span', className, match[0].slice(1)));
       last = match.index + match[0].length;
     }
     box.append(String(url || '').slice(last));
@@ -98,13 +101,17 @@
 
       if ((entry.removed && entry.removed.length) || (entry.kept && entry.kept.length)) {
         const box = names(entry.removed || [], 'removed');
-        for (const name of entry.kept || []) box.appendChild(node('span', 'name kept', name));
+        const affiliate = entry.affiliate || [];
+        for (const name of entry.kept || []) {
+          box.appendChild(node('span',
+            'name ' + (affiliate.indexOf(name) !== -1 ? 'affiliate' : 'kept'), name));
+        }
         item.appendChild(box);
       }
 
       const urls = node('div', 'urls');
       const line = (label, url) => urls.append(node('span', 'label', label),
-        markedUrl(url, entry.removed));
+        markedUrl(url, entry.removed, entry.affiliate));
       line('from', entry.from);
       for (const hop of entry.redirects || []) line('↳ ' + hop.by, hop.to);
       const lastHop = (entry.redirects || []).slice(-1)[0];

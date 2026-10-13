@@ -14,8 +14,10 @@
     --chip: #f3f4f6;
     --removed: #b91c1c;
     --removed-bg: rgba(220, 38, 38, .1);
-    --kept: #92400e;
-    --kept-bg: rgba(217, 119, 6, .12);
+    --kept: #15803d;
+    --kept-bg: rgba(22, 163, 74, .12);
+    --affiliate: #92400e;
+    --affiliate-bg: rgba(217, 119, 6, .14);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -27,8 +29,10 @@
       --chip: #2b2d33;
       --removed: #fca5a5;
       --removed-bg: rgba(248, 113, 113, .14);
-      --kept: #fcd34d;
-      --kept-bg: rgba(251, 191, 36, .14);
+      --kept: #86efac;
+      --kept-bg: rgba(74, 222, 128, .13);
+      --affiliate: #fcd34d;
+      --affiliate-bg: rgba(251, 191, 36, .16);
     }
   }
   * { box-sizing: border-box; }
@@ -71,6 +75,7 @@
   }
   .name.removed { color: var(--removed); background: var(--removed-bg); text-decoration: line-through; }
   .name.kept { color: var(--kept); background: var(--kept-bg); }
+  .name.affiliate { color: var(--affiliate); background: var(--affiliate-bg); }
   /* One column of labels, one of URLs, so every URL starts at the same place. */
   .urls {
     display: grid; grid-template-columns: 11ch 1fr; gap: 2px 8px; margin-top: 6px;
@@ -79,6 +84,7 @@
   .urls .label { color: var(--muted); white-space: nowrap; }
   .urls .value { word-break: break-all; }
   .urls .value .gone { color: var(--removed); background: var(--removed-bg); border-radius: 3px; }
+  .urls .value .affiliate { color: var(--affiliate); background: var(--affiliate-bg); border-radius: 3px; }
   .empty { color: var(--muted); text-align: center; padding: 40px 0; }
 </style>
 </head>
@@ -92,6 +98,8 @@
   </header>
   <p class="legend">
     Newest first. <span class="name removed">removed</span> was taken out;
+    <span class="name affiliate">affiliate</span> was left as credit for whoever
+    shared the link (see "Also remove affiliate tags");
     <span class="name kept">kept</span> was still there afterwards, which is
     where a missing rule shows up. Held in memory only, until the browser closes.
   </p>
