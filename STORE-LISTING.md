@@ -24,19 +24,43 @@ grep -rnE "(src|href)=\"https?:" src/*.html
 
 Pick one. Counts are in the check below.
 
+0. Removes 630+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent. (124)
 1. Removes tracking parameters and share IDs from links before they load, and from links you copy.
 2. Strips utm_source, gclid, fbclid and share IDs out of URLs you open and URLs you copy.
 3. Cleans tracking junk out of links automatically, and out of anything you copy.
 
-Suggested: 1. It says what happens and where, without jargon a non-technical reader would skip.
+Suggested: 0. It says what happens and where, gives a number a reader can weigh against other extensions, and answers the privacy question before it is asked. 1 is the version without the number.
 
 ---
 
 ## Detailed description
 
+No site, app or brand names: the Chrome Web Store treats a list of them as keyword spam, an attempt to rank for those searches. Parameter names are fine; they are what the extension removes. The figures are worded "over" and "more than" so they stay true as rules are added. Recompute them with:
+
+```
+node -e "const R=require('./src/rules.js');const s=new Set(R.sites.flatMap(x=>x.params||[]));console.log(R.globalParams.length,'everywhere,',s.size,'site-specific,',new Set([...R.globalParams,...s].map(x=>x.toLowerCase())).size,'distinct,',R.redirects.length,'redirect services')"
+```
+
+The number of websites (76 in 1.0.10) is counted by hand from the `hosts` in `src/rules.js`, one per service: regional domains and short-link domains do not count again.
+
+```
 CleanURL removes tracking parameters and share identifiers from the links you open and the links you copy.
 
-A link from a share button or an ad usually carries more than the address of the page. "utm_source" and "utm_campaign" record which campaign sent you. "gclid", "fbclid" and "msclkid" tie your visit to an ad click. YouTube's "si", Instagram's "igsh" and Spotify's "si" identify the person who shared the link with you. None of it is needed to open the page.
+A link from a share button, a newsletter or an ad usually carries more than the address of the page. "utm_source" and "utm_campaign" record which campaign sent you. "gclid", "fbclid" and "msclkid" tie your visit to an ad click. The share identifiers that video, music and social apps add to their links record who shared the link with you. None of it is needed to open the page.
+
+WHAT IT REMOVES
+
+Over 630 different tracking parameters.
+
+More than 200 of them are removed on every website: campaign tags (utm_* and similar), ad click identifiers (gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid and more), and the tags that email marketing and analytics tools add to links. Wildcards catch new variants of the common families.
+
+More than 420 are share and tracking identifiers specific to more than 75 popular websites: video, music, social, shopping, news, travel and search sites, on their regional domains too.
+
+Redirect links from more than 30 services are unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour.
+
+Affiliate tags are deliberately left alone. They pay whoever shared the link, so removing them is your decision rather than a default. There is a switch if you want it, which also unwraps affiliate network links.
+
+So is anything a site needs to work. Sign-in and session parameters such as code, state, token and redirect_uri, and ordinary ones like q, v, id and page, are never touched.
 
 WHAT IT DOES
 
@@ -46,17 +70,7 @@ Cleans links when you copy them. Share panel "Copy link" buttons, Ctrl+C over a 
 
 Adds "Copy clean link" to the right-click menu, for a link or for the page you are on.
 
-Cleans the clipboard on demand. One button in the popup rewrites a link you have already copied, which covers links copied in another browser or app, or with Chrome's own "Copy link address" that an extension cannot intercept.
-
-WHAT IT REMOVES
-
-Around 170 parameters on every site, including utm_*, gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid, mc_cid, mkt_tok, and HubSpot, Klaviyo and Matomo tags.
-
-Share and tracking identifiers for around 40 sites and site groups: YouTube si and pp, Instagram and Threads igsh, X s and t, TikTok's share_* set, Reddit share_id, Spotify si, LinkedIn trk, Facebook mibextid, Amazon pd_rd_* and pf_rd_*, plus eBay, AliExpress, Bilibili, Etsy, Steam, Twitch and others.
-
-Affiliate tags are deliberately left alone. They pay whoever shared the link, so removing them is your decision rather than a default. There is a switch if you want it.
-
-So is anything a site needs to work. Sign-in and session parameters such as code, state, token and redirect_uri, and ordinary ones like q, v, id and page, are never touched.
+Cleans the clipboard on demand. One button in the popup rewrites a link you have already copied, which covers links copied in another browser or app, or with Chrome's own "Copy link address", which an extension cannot intercept. The first time you press it, Chrome asks for permission to read the clipboard. It is read only when you press the button.
 
 SETTINGS
 
@@ -71,6 +85,9 @@ PRIVACY
 No data is collected. The extension makes no network request of any kind, contacts no server, and contains no analytics. The list of parameters it removes is a plain file inside the extension, not something fetched or updated remotely. The only things stored are your settings and two counters, and they stay on your device.
 
 It asks for access to all sites because tracking parameters turn up on links to any domain, including small and personal ones, and because a URL can only be rewritten before it loads if the extension has access to it.
+
+CleanURL is open source under the MIT license.
+```
 
 ---
 
