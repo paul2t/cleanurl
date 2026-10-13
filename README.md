@@ -298,15 +298,18 @@ out of the manifest (icons, content scripts, the service worker's
 `importScripts` arguments, and what the popup and options pages load), so
 `test/`, `tools/`, `package.json` and `src/content-main.js` - which exists only
 to feed the generated bundle - are left out without a hand-maintained list to
-drift. Output is reproducible: the same tree packs to the same bytes on the
-same Node version. Across versions the files inside are identical, but
-Node's bundled zlib changes between releases and compresses them slightly
-differently, so the archive bytes differ (Node 18 on Linux against Node 24 on
-Windows, for one).
+drift. Output is reproducible: the same tree packs to the same bytes on Node
+20 and later, on Windows and Linux alike. The 1.0.9 release, built on Windows
+with Node 24, came out byte for byte the same from Node 20, 22 and 24 under
+WSL. Node 18 packs the same files, but its older bundled zlib compresses them
+differently, so its archives differ.
 
-The tooling needs Node 18 or later and nothing else: no `npm install`, and no
-`zip` or `unzip` on the system. `npm test` and both packages build on Windows
-and on Linux (checked under WSL with Ubuntu 24.04's Node 18).
+The tooling needs Node 18, or 20 and later, and nothing else: no
+`npm install`, and no `zip` or `unzip` on the system. Node 19 cannot run the
+tests: it alone makes `Event.isTrusted` an unchangeable property of each
+event, and the copy tests need to fake a user's event. Node 18 needs the
+`CustomEvent` stand-in in `test/clipboard.test.js`, so releases up to 1.0.9
+only build on Node 20 or later.
 
 There is no command that produces a Web Store submission directly; you upload
 that zip. A `.crx` comes from Chrome itself:
