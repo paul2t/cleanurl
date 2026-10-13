@@ -7,12 +7,12 @@
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestFeedback",
-    "clipboardRead",
     "storage",
     "contextMenus",
     "scripting",
     "webRequest"
   ],
+  "optional_permissions": ["clipboardRead"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "src/background.js"

@@ -108,7 +108,9 @@ If you ever ship it, the reason is: `onRuleMatchedDebug` is used only to count c
 
 ---
 
-## clipboardRead (804/1000)
+## clipboardRead (optional permission)
+
+Declared under optional_permissions, so it is not requested at install. The popup asks for it the first time the user presses "Clean clipboard link", and never otherwise.
 
 The popup has a single button, "Clean clipboard link". Pressing it reads the clipboard, removes tracking parameters from any URL found there, writes the cleaned text back, and displays which parameters were removed.
 

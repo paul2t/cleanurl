@@ -43,7 +43,14 @@ ok('declares host permissions', manifest.host_permissions.includes('<all_urls>')
   ok('the popup has a clean-clipboard button',
     /<button[^>]*id="clean-clipboard"/.test(popup));
   ok('reading the clipboard is backed by the permission',
-    !readsClipboard || manifest.permissions.includes('clipboardRead'));
+    !readsClipboard || (manifest.optional_permissions || []).includes('clipboardRead'));
+  // Optional, so installing does not warn "Read data you copy and paste" for a
+  // button many people never press; the popup asks on first use.
+  ok('clipboardRead is optional, not requested at install',
+    !manifest.permissions.includes('clipboardRead'));
+  ok('the popup requests it before reading',
+    script.includes("permissions.request({ permissions: ['clipboardRead'] })") &&
+    script.indexOf('permissions.request') < script.indexOf('clipboard.readText'));
 }
 
 const referenced = [

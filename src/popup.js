@@ -222,6 +222,23 @@
   async function cleanClipboardLink() {
     el.cleanClipboard.disabled = true;
     try {
+      /*
+       * clipboardRead is optional, so installing CleanURL does not warn about
+       * reading the clipboard for a button many people never press: it is
+       * asked for the first time it is used. The request must come straight
+       * from the click (Firefox refuses one made after an await), and it
+       * resolves at once, without a prompt, when already granted.
+       */
+      let granted = false;
+      try {
+        granted = await chrome.permissions.request({ permissions: ['clipboardRead'] });
+      } catch (e) { /* treated as refused */ }
+      if (!granted) {
+        showClipboard('warn', 'CleanURL needs permission to read the clipboard ' +
+          'for this. It only reads it when you press this button.');
+        return;
+      }
+
       let text;
       try {
         text = await navigator.clipboard.readText();

@@ -372,7 +372,10 @@ to be present wherever a share button is.
 
 `clipboardRead` ("Read data you copy and paste") exists solely for the popup's
 **Clean clipboard link** button, and the clipboard is only ever read when you
-press it — never in the background, and never by a content script.
+press it — never in the background, and never by a content script. It is an
+optional permission, so installing CleanURL does not show that warning: the
+popup asks for it the first time you press the button. If the browser closes
+the popup while asking, press the button again once it is granted.
 
 Nothing is sent anywhere — the rules are a static file in this folder and the
 only stored state is your settings plus two counters. (The debug build also
