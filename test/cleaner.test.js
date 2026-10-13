@@ -120,6 +120,14 @@ url('instagram psln',
   'https://www.instagram.com/reel/Cx1y2z3/?igsh=MWQx&psln=abc123',
   'https://www.instagram.com/reel/Cx1y2z3/');
 
+url('instagram stkn share token',
+  'https://www.instagram.com/reel/DcuZPkpAq_m/?stkn=OThqd284MGd1cnR1',
+  'https://www.instagram.com/reel/DcuZPkpAq_m/');
+
+url('stkn is left alone off instagram',
+  'https://example.com/?stkn=abc',
+  'https://example.com/?stkn=abc');
+
 url('x.com s/t share ids',
   'https://x.com/someone/status/1234567890?s=20&t=Ab3dEf',
   'https://x.com/someone/status/1234567890');

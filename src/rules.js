@@ -140,7 +140,7 @@
         name: 'Instagram / Threads',
         hosts: ['instagram.com', 'threads.net', 'threads.com'],
         dnrDomains: ['instagram.com', 'threads.net', 'threads.com'],
-        params: ['igsh', 'igshid', 'xmt', 'img_index_share', 'psln'],
+        params: ['igsh', 'igshid', 'xmt', 'img_index_share', 'psln', 'stkn'],
       },
       {
         name: 'X / Twitter',
