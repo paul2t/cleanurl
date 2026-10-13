@@ -203,6 +203,40 @@ url('affiliate tag removed when opted in',
   'https://www.amazon.com/dp/B0ABCDEFGH',
   { removeAffiliate: true });
 
+/*
+ * Affiliate codes credit whoever shared the link, so like tag they stay
+ * unless affiliate removal is on - the Chrome Web Store's affiliate policy
+ * forbids removing them without the user's say-so.
+ */
+{
+  const cases = [
+    ['affiliate network click ids on any site',
+      'https://shop.example/item?cjevent=abc&awc=1_2&sscid=x&irclickid=y&irgwc=1&utm_source=z',
+      'https://shop.example/item?cjevent=abc&awc=1_2&sscid=x&irclickid=y&irgwc=1',
+      'https://shop.example/item'],
+    ['eBay Partner Network',
+      'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001&_trksid=p1',
+      'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001',
+      'https://www.ebay.com/itm/123'],
+    ['Booking.com affiliate id',
+      'https://www.booking.com/hotel/fr/x.html?aid=304142&label=gen173&srpvid=1',
+      'https://www.booking.com/hotel/fr/x.html?aid=304142&label=gen173',
+      'https://www.booking.com/hotel/fr/x.html'],
+    ['AliExpress affiliate set',
+      'https://www.aliexpress.com/item/1.html?aff_fcid=a&aff_fsk=b&aff_platform=c&aff_trace_key=d&spm=e',
+      'https://www.aliexpress.com/item/1.html?aff_fcid=a&aff_fsk=b&aff_platform=c&aff_trace_key=d',
+      'https://www.aliexpress.com/item/1.html'],
+    ['Apple affiliate token and campaign',
+      'https://apps.apple.com/app/id1?at=1000l&ct=promo&uo=4',
+      'https://apps.apple.com/app/id1?at=1000l&ct=promo',
+      'https://apps.apple.com/app/id1'],
+  ];
+  for (const [label, input, kept, removed] of cases) {
+    url(`${label}: kept by default`, input, kept);
+    url(`${label}: removed when opted in`, input, removed, { removeAffiliate: true });
+  }
+}
+
 {
   const gq = 'https://www.amazon.fr/Columbia-Peakfreak-Shandal-Sandale-Mangue/dp/B0D4B63WQG' +
     '?source=ps-sl-shoppingads-lpcontext&linkCode=sl1&tag=condenastfran-21&language=fr_FR' +

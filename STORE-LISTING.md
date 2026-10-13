@@ -24,7 +24,7 @@ grep -rnE "(src|href)=\"https?:" src/*.html
 
 The dashboard takes this from `description` in manifest.json (132 characters at most), so it changes with a release, not in the dashboard. Since 1.0.11 it is option 0. Counts are in the check below.
 
-0. Removes 630+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent. (124)
+0. Removes 600+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent. (124)
 1. Removes tracking parameters and share IDs from links before they load, and from links you copy.
 2. Strips utm_source, gclid, fbclid and share IDs out of URLs you open and URLs you copy.
 3. Cleans tracking junk out of links automatically, and out of anything you copy.
@@ -50,11 +50,11 @@ A link from a share button, a newsletter or an ad usually carries more than the 
 
 WHAT IT REMOVES
 
-Over 630 different tracking parameters.
+Over 600 different tracking parameters.
 
 More than 200 of them are removed on every website: campaign tags (utm_* and similar), ad click identifiers (gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid and more), and the tags that email marketing and analytics tools add to links. Wildcards catch new variants of the common families.
 
-More than 420 are share and tracking identifiers specific to more than 75 popular websites: video, music, social, shopping, news, travel and search sites, on their regional domains too.
+More than 400 are share and tracking identifiers specific to more than 75 popular websites: video, music, social, shopping, news, travel and search sites, on their regional domains too.
 
 Redirect links from more than 30 services are unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour.
 

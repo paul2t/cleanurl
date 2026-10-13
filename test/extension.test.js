@@ -757,6 +757,18 @@ ok('no duplicate global params',
   new Set(RULES.globalParams).size === RULES.globalParams.length,
   RULES.globalParams.filter((p, i) => RULES.globalParams.indexOf(p) !== i).join(', '));
 
+/* A name on an affiliate list must never also be removed regardless. */
+{
+  const affiliate = new Set(RULES.affiliateParams.map((p) => p.toLowerCase()));
+  const both = RULES.globalParams.filter((p) => affiliate.has(p.toLowerCase()));
+  ok('no affiliate name is removed everywhere by default', !both.length, both.join(', '));
+  for (const site of RULES.sites) {
+    const own = new Set((site.affiliate || []).map((p) => p.toLowerCase()));
+    const overlap = (site.params || []).filter((p) => own.has(p.toLowerCase()));
+    ok(`${site.name}: no affiliate name in its default params`, !overlap.length, overlap.join(', '));
+  }
+}
+
 for (const site of RULES.sites) {
   ok(`${site.name}: has a name and hosts`, !!site.name && site.hosts.length > 0);
   ok(`${site.name}: no duplicate params`,
