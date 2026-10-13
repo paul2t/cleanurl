@@ -53,8 +53,14 @@ const GECKO_ID = 'cleanurl@paul2t.github.io';
  * its own copy of navigator.clipboard, reports every hook as installed, and so
  * stops the share-field fallback from ever starting. A hard floor beats a
  * degraded mode that reports itself as healthy.
+ *
+ * The floor is higher still because of data_collection_permissions, which AMO
+ * requires: Firefox only reads it from 140, and Firefox for Android from 142.
+ * Below those, AMO's validator warns that the declaration would be ignored.
+ * Both are long out of support anyway (128 ESR included).
  */
-const FIREFOX_MIN_VERSION = '128.0';
+const FIREFOX_MIN_VERSION = '140.0';
+const FIREFOX_ANDROID_MIN_VERSION = '142.0';
 
 /*
  * Firefox has no background service worker: the same file runs as an event
@@ -73,7 +79,7 @@ function forFirefox(shipped) {
      * world mirror the desktop versions there, so the floor is the same; the
      * menus API does not exist on Android, which background.js guards for.
      */
-    gecko_android: { strict_min_version: FIREFOX_MIN_VERSION },
+    gecko_android: { strict_min_version: FIREFOX_ANDROID_MIN_VERSION },
     gecko: {
       id: GECKO_ID,
       strict_min_version: FIREFOX_MIN_VERSION,

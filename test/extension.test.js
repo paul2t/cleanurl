@@ -225,9 +225,14 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
   const dataPermissions = firefox.browser_specific_settings.gecko.data_collection_permissions;
   const android = firefox.browser_specific_settings.gecko_android;
   ok('firefox declares android compatibility', !!android);
-  eq('android uses the same version floor',
-    android && android.strict_min_version,
+  // AMO's validator warns when the floor predates data_collection_permissions:
+  // Firefox reads it from 140, Firefox for Android from 142.
+  ok('the firefox floor supports data_collection_permissions',
+    parseFloat(firefox.browser_specific_settings.gecko.strict_min_version) >= 140,
     firefox.browser_specific_settings.gecko.strict_min_version);
+  ok('the android floor supports data_collection_permissions',
+    !!android && parseFloat(android.strict_min_version) >= 142,
+    android && android.strict_min_version);
 
   ok('firefox declares data collection permissions', !!dataPermissions);
   eq('firefox declares that it collects nothing',

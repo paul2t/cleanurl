@@ -215,14 +215,18 @@ clean link** - there is no right-click menu to put it in. The packager rewrites 
   `typeof importScripts === 'function'` and works either way.
 - **`browser_specific_settings.gecko`.** An add-on id, without which
   `storage.sync` does not work and AMO cannot sign the build.
-- **`strict_min_version: "128.0"`.** `content_scripts` `world` needs Firefox
-  128. Below that Firefox ignores the key and runs the page-world bundle in the
-  isolated world, where it patches its own copy of `navigator.clipboard`,
-  reports every hook as installed, and so stops the share-field fallback from
-  ever starting. A hard floor beats a degraded mode that reports itself healthy.
+- **`strict_min_version`: 140 on desktop, 142 on Android.** `content_scripts`
+  `world` needs Firefox 128. Below that Firefox ignores the key and runs the
+  page-world bundle in the isolated world, where it patches its own copy of
+  `navigator.clipboard`, reports every hook as installed, and so stops the
+  share-field fallback from ever starting. A hard floor beats a degraded mode
+  that reports itself healthy. The floor is higher still because of
+  `data_collection_permissions`, which AMO requires and Firefox only reads from
+  140 (142 on Android); below those, AMO's validator warns the declaration
+  would be ignored.
 
 `declarativeNetRequest` itself needs only Firefox 113, so the floor is about
-the clipboard hook rather than the core cleaning.
+the clipboard hook and AMO's data declaration rather than the core cleaning.
 
 The manifest on disk cannot serve both browsers: Firefox needs
 `background.scripts`, and Chrome flags that key in a Manifest V3 manifest
