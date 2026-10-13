@@ -303,7 +303,9 @@
                  'gs_ssp', 'gs_l', 'sclient', 'uact', 'oq', 'usg', 'bih',
                  'biw', 'dpr', 'iflsig', 'aqs', 'rlz', 'source', 'sourceid',
                  'psi', 'ictx', 'cshid', 'vet', 'bshm',
-                 'sei', 'gws_rd', 'gfe_rd', 'pcampaignid', 'fbs'],
+                 'sei', 'gws_rd', 'gfe_rd', 'pcampaignid', 'fbs',
+                 // gs_lp succeeds gs_lcp, sca_upv pairs with sca_esv, lei with ei
+                 'gs_lp', 'sca_upv', 'lei'],
       },
       {
         name: 'Twitch',

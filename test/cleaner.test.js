@@ -215,6 +215,11 @@ url('google search noise',
   'https://www.google.com/search?q=hello&sca_esv=abc&ei=xyz&ved=2ahUKEwi&sourceid=chrome',
   'https://www.google.com/search?q=hello');
 
+url('google search: current tracking, but not client, hl or the si tab',
+  'https://www.google.com/search?q=cleanurl&sca_esv=a1&sca_upv=1&sxsrf=AH&ei=Zx&ved=0a&uact=5&oq=cleanur' +
+    '&gs_lp=Egxnd3Mtd2l6LXNlcnA&sclient=gws-wiz-serp&lei=Zx&client=firefox-b-d&hl=fr&si=AKbGX_o',
+  'https://www.google.com/search?q=cleanurl&client=firefox-b-d&hl=fr&si=AKbGX_o');
+
 url('google ccTLD matches via hostRe',
   'https://www.google.co.uk/search?q=hello&ved=2ahUKEwi',
   'https://www.google.co.uk/search?q=hello');
