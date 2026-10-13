@@ -440,3 +440,7 @@ build, the debug log shows exactly what each layer did.
 - `test/`, `tools/` and `package.json` are development-only. Publish with
   `npm run package` / `npm run package:firefox`, which leave them out, along
   with the debug page and the dev-only permissions.
+
+## License
+
+[MIT](LICENSE). The `LICENSE` file ships inside both packages.

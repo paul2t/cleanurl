@@ -144,6 +144,7 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
   const { files } = packager.collectFiles();
 
   ok('packages the manifest itself', files.includes('manifest.json'));
+  ok('packages the license', files.includes('LICENSE'));
   ok('packages the page-world bundle', files.includes('src/page-world.js'));
   ok('packages the popup with its scripts',
     ['src/popup.html', 'src/popup.js', 'src/settings.js'].every((f) => files.includes(f)));

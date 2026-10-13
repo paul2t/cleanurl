@@ -161,7 +161,8 @@ function workerReferences(workerRelative) {
 
 function collectFiles() {
   const manifest = JSON.parse(readText('manifest.json'));
-  const files = new Set(['manifest.json']);
+  // The MIT license asks for its notice to travel with copies of the code.
+  const files = new Set(['manifest.json', 'LICENSE']);
   const add = (list) => { for (const f of list) if (f) files.add(f); };
 
   add(Object.values(manifest.icons || {}));
