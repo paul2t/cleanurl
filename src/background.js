@@ -660,6 +660,36 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'loading' || changeInfo.url) updateBadge(tabId, tab.url);
 });
 
+/*
+ * Chrome closes the popup when the clipboard permission prompt takes focus,
+ * so pressing "Clean clipboard link" would need a second press after
+ * allowing it. The popup leaves a note before asking; once the permission is
+ * granted, reopen the popup and it finishes the clean (see popup.js). If the
+ * popup survived the prompt, it clears the note itself and carries on, so
+ * this waits a moment and only acts on a note that is still there.
+ */
+const PENDING_CLEAN = 'pendingClipboardClean';
+
+async function onPermissionsAdded(permissions) {
+  if (!permissions || !(permissions.permissions || []).includes('clipboardRead')) return;
+  const session = chrome.storage && chrome.storage.session;
+  if (!session || !chrome.action || !chrome.action.openPopup) return;
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const pending = (await session.get(PENDING_CLEAN).catch(() => ({})))[PENDING_CLEAN];
+  if (!pending || Date.now() - pending > 2 * 60 * 1000) return;
+  try {
+    await chrome.action.openPopup();
+  } catch (e) {
+    // Not allowed here (no focused window, or a browser that only opens it
+    // from a click): the note stays, and the next time the popup is opened
+    // it finishes the clean.
+  }
+}
+
+if (chrome.permissions && chrome.permissions.onAdded) {
+  chrome.permissions.onAdded.addListener(onPermissionsAdded);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message) return undefined;
   if (message.type === 'report') {

@@ -219,7 +219,18 @@
    * app, Chrome's own "Copy link address". An explicit request, so it runs
    * even when the automatic passes are off; only the allowlist still applies.
    */
-  async function cleanClipboardLink() {
+  /*
+   * Chrome closes the popup when its permission prompt takes focus, and the
+   * click's work goes with it. So before asking, the popup leaves a note; the
+   * background reopens the popup once the permission is granted, and the
+   * popup finishes the job on opening (see resumeClipboardClean). The note is
+   * only honoured for a short while, so an old one cannot fire later.
+   */
+  const PENDING_CLEAN = 'pendingClipboardClean';
+  const PENDING_FOR_MS = 2 * 60 * 1000;
+  const session = chrome.storage && chrome.storage.session;
+
+  async function cleanClipboardLink(alreadyGranted) {
     el.cleanClipboard.disabled = true;
     try {
       /*
@@ -229,10 +240,17 @@
        * from the click (Firefox refuses one made after an await), and it
        * resolves at once, without a prompt, when already granted.
        */
-      let granted = false;
-      try {
-        granted = await chrome.permissions.request({ permissions: ['clipboardRead'] });
-      } catch (e) { /* treated as refused */ }
+      let granted = alreadyGranted === true;
+      if (!granted) {
+        // Not awaited: an await here would come between the click and the
+        // request, which Firefox then refuses.
+        if (session) session.set({ [PENDING_CLEAN]: Date.now() }).catch(() => {});
+        try {
+          granted = await chrome.permissions.request({ permissions: ['clipboardRead'] });
+        } catch (e) { /* treated as refused */ }
+        // Still open, so this popup finishes the job itself.
+        if (session) await session.remove(PENDING_CLEAN).catch(() => {});
+      }
       if (!granted) {
         showClipboard('warn', 'CleanURL needs permission to read the clipboard ' +
           'for this. It only reads it when you press this button.');
@@ -282,7 +300,25 @@
     }
   }
 
-  el.cleanClipboard.addEventListener('click', cleanClipboardLink);
+  el.cleanClipboard.addEventListener('click', () => cleanClipboardLink());
+
+  /** Finishes a clean the permission prompt interrupted by closing the popup. */
+  async function resumeClipboardClean() {
+    if (!session) return;
+    let pending;
+    try {
+      pending = (await session.get(PENDING_CLEAN))[PENDING_CLEAN];
+    } catch (e) {
+      return;
+    }
+    if (!pending) return;
+    await session.remove(PENDING_CLEAN).catch(() => {});
+    if (Date.now() - pending > PENDING_FOR_MS) return;
+    // Refused, or the prompt dismissed: say nothing, ask again on the next press.
+    const granted = await chrome.permissions.contains({ permissions: ['clipboardRead'] })
+      .catch(() => false);
+    if (granted) cleanClipboardLink(true);
+  }
 
   el.options.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
@@ -368,5 +404,6 @@
     renderOpened();
     renderStats();
     renderDiagnostics();
+    resumeClipboardClean();
   })();
 })();

@@ -8,8 +8,11 @@
  */
 'use strict';
 
+const fs = require('fs');
 const http = require('http');
-const { findChrome, launch, sleep } = require('../tools/chrome.js');
+const os = require('os');
+const path = require('path');
+const { findChrome, launch, sleep, root } = require('../tools/chrome.js');
 
 let passed = 0;
 const failures = [];
@@ -114,7 +117,60 @@ async function main() {
     ok('the log is still being written', !!entry);
   } finally {
     browser.close();
-    server.close();
+  }
+
+  await clipboardAfterPermission();
+  server.close();
+}
+
+/*
+ * "Clean clipboard link" on first use: Chrome closes the popup when its
+ * permission prompt takes focus, so the background reopens it once the
+ * permission is granted and the popup finishes the clean. A headless browser
+ * cannot click "Allow", so this loads a copy with the permission already
+ * granted and fires what Chrome fires after the click.
+ */
+async function clipboardAfterPermission() {
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'cleanurl-granted-'));
+  for (const dir of ['src', 'icons']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+  manifest.permissions.push('clipboardRead');
+  fs.writeFileSync(path.join(copy, 'manifest.json'), JSON.stringify(manifest));
+
+  const browser = await launch({ extension: copy });
+  try {
+    // From an extension page: a web page's writeText would come out clean.
+    const ext = await browser.open(browser.base + 'src/options.html', 800);
+    await browser.send('Target.activateTarget', { targetId: ext.id });
+    await ext.eval(`navigator.clipboard.writeText('https://www.youtube.com/watch?v=dQw4w9WgXcQ&si=Kd8sPqR2')`);
+    const page = await browser.open('https://example.com/');
+    await browser.send('Target.activateTarget', { targetId: page.id });
+
+    // The note the popup leaves before the prompt closes it, then the grant.
+    await browser.sw.eval('chrome.storage.session.set({ pendingClipboardClean: Date.now() })');
+    await browser.sw.eval("onPermissionsAdded({ permissions: ['clipboardRead'] })");
+    const target = await browser.waitForTarget((t) => t.url.endsWith('/src/popup.html'), 4000);
+    ok('after the permission is granted, the popup reopens', !!target);
+    if (target) {
+      const popup = await browser.attach(target.targetId);
+      await sleep(1500);
+      eq('and finishes cleaning the clipboard', await popup.eval('navigator.clipboard.readText()'),
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+      await browser.send('Target.closeTarget', { targetId: target.targetId }).catch(() => {});
+    }
+    eq('the note is used up', JSON.stringify(
+      await browser.sw.eval('chrome.storage.session.get("pendingClipboardClean")')), '{}');
+
+    // An old note must not fire.
+    await sleep(500);
+    await browser.send('Target.activateTarget', { targetId: page.id });
+    await browser.sw.eval('chrome.storage.session.set({ pendingClipboardClean: Date.now() - 600000 })');
+    await browser.sw.eval("onPermissionsAdded({ permissions: ['clipboardRead'] })");
+    ok('a stale note does not reopen the popup',
+      !(await browser.waitForTarget((t) => t.url.endsWith('/src/popup.html'), 1500)));
+  } finally {
+    browser.close();
+    setTimeout(() => fs.rmSync(copy, { recursive: true, force: true }), 1500).unref();
   }
 }
 

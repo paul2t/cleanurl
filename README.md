@@ -396,8 +396,11 @@ to be present wherever a share button is.
 **Clean clipboard link** button, and the clipboard is only ever read when you
 press it — never in the background, and never by a content script. It is an
 optional permission, so installing CleanURL does not show that warning: the
-popup asks for it the first time you press the button. If the browser closes
-the popup while asking, press the button again once it is granted.
+popup asks for it the first time you press the button. Chrome closes the popup
+when its prompt takes focus, so the popup leaves a note before asking; once
+the permission is granted the background reopens the popup, which finishes
+the clean. Where the popup cannot be reopened automatically, the note lasts
+two minutes and the next time the popup opens it finishes the job.
 
 Nothing is sent anywhere — the rules are a static file in this folder and the
 only stored state is your settings plus two counters. See the
