@@ -16,6 +16,7 @@
   const Settings = globalThis.CleanURLSettings;
   const CopyGuard = globalThis.CleanURLCopyGuard;
   const FieldGuard = globalThis.CleanURLFieldGuard;
+  const LinkGuard = globalThis.CleanURLLinkGuard;
   if (!Clean || !Settings || !CopyGuard) return;
 
   let settings = Object.assign({}, Clean.DEFAULT_SETTINGS);
@@ -67,6 +68,9 @@
     }
     report(payload.kind, payload.count, payload.detail);
   }, true);
+
+  // Google redirect links on Google's pages, unwrapped as they are followed.
+  if (LinkGuard) LinkGuard.install({ getSettings: () => settings, report: report });
 
   CopyGuard.install({
     getSettings: () => settings,

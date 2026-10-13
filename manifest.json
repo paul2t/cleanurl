@@ -40,6 +40,7 @@
         "src/cleaner.js",
         "src/copy-guard.js",
         "src/field-guard.js",
+        "src/link-guard.js",
         "src/settings.js",
         "src/content-isolated.js"
       ],

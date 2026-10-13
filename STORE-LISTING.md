@@ -53,7 +53,7 @@ WHAT IT REMOVES
 • Over 900 tracking parameters in total.
 • More than 450 removed on every website: campaign tags (utm_* and similar), ad click identifiers (gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid and more), and the tags email marketing and analytics tools add. Wildcards catch new variants of the common families.
 • More than 450 are share and tracking identifiers specific to over 75 popular websites - video, music, social, shopping, news, travel and search - on their regional domains too.
-• Redirect links from more than 50 services, unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour.
+• Redirect links from more than 50 services, unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour. Links on search results go straight to the page when you click them, without the search engine's click tracking.
 • Affiliate tags are left alone by default - they pay whoever shared the link - with a switch if you want to remove them too, which also unwraps affiliate network links.
 • Anything a site needs to work, such as sign-in and session parameters (code, state, token, redirect_uri) and ordinary ones (q, v, id, page), is never touched.
 

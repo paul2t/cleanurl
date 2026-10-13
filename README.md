@@ -473,8 +473,14 @@ build, the debug log shows exactly what each layer did.
   and is only ever used to *explain* a content script already known to be
   missing - never to predict one, or Chrome would be told it cannot run on
   `support.mozilla.org`, where it runs perfectly well.
-- Redirect unwrapping (`google.com/url?q=…`) applies to links you copy, not to
-  navigation, where following the redirect is usually the point.
+- Redirect unwrapping (`google.com/url?q=…`) applies to links you copy, and to
+  links you click on Google's own pages ([`src/link-guard.js`](src/link-guard.js)):
+  just before a click, middle-click or right-click, a Google redirect link is
+  swapped for its cleaned destination and the `ping` beacon on search results
+  is dropped, so Google logs neither. Not to navigation in general: the
+  network rules cannot decode the destination, and for a `google.com/url`
+  link found anywhere else, Google's "Redirect notice" is what protects
+  against phishing links dressed up as Google ones.
 - **A redirector's parameters are never edited, only unwrapped.** They are its
   payload and its signature: `google.com/url` rejects the whole request as
   invalid if `usg` is missing. Since Google puts `sa` and `usg` on its own

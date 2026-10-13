@@ -578,6 +578,56 @@ url('vk away.php on the bare domain',
     { unwrapRedirects: false });
 }
 
+/*
+ * Following a Google redirect link on a Google page: the link is swapped for
+ * its cleaned destination as it is used (src/link-guard.js). Only there - a
+ * google.com/url link elsewhere keeps Google's "Redirect notice".
+ */
+{
+  const LinkGuard = require('../src/link-guard.js');
+  const link = (href, ping) => {
+    const attrs = ping ? { ping: ping } : {};
+    return {
+      tagName: 'A', href: href,
+      hasAttribute: (name) => name in attrs,
+      removeAttribute: (name) => { delete attrs[name]; },
+      get pinged() { return 'ping' in attrs; },
+    };
+  };
+  const on = Object.assign({}, Clean.DEFAULT_SETTINGS);
+  const maps = 'https://www.google.com/url?url=https%3A%2F%2Fwww.ap-reiki.fr%2F%3Futm_source%3Dgmb&sa=t' +
+    '&rct=j&source=maps&usg=AOvVaw0uNw_xg6SH4tnkZwY2kI6U&ved=1i%3A17';
+
+  let a = link(maps);
+  LinkGuard.rewrite(a, on, 'www.google.com');
+  check('a Google Maps redirect link is unwrapped and cleaned', a.href, 'https://www.ap-reiki.fr/');
+
+  a = link(maps);
+  LinkGuard.rewrite(a, on, 'maps.google.fr');
+  check('on any Google domain', a.href, 'https://www.ap-reiki.fr/');
+
+  a = link(maps);
+  LinkGuard.rewrite(a, on, 'mail.example.com');
+  check('but not on another site: Google keeps its redirect notice', a.href, maps);
+
+  a = link(maps);
+  LinkGuard.rewrite(a, Object.assign({}, on, { unwrapRedirects: false }), 'www.google.com');
+  check('not when unwrapping is switched off', a.href, maps);
+
+  a = link(maps);
+  LinkGuard.rewrite(a, Object.assign({}, on, { allowlist: ['google.com'] }), 'www.google.com');
+  check('not when Google is on the allowlist', a.href, maps);
+
+  a = link('https://www.ap-reiki.fr/', 'https://www.google.com/url?sa=t&ved=x');
+  LinkGuard.rewrite(a, on, 'www.google.com');
+  check('the ping beacon of a result is removed', a.pinged, false);
+  check('and a direct link is left as it is', a.href, 'https://www.ap-reiki.fr/');
+
+  a = link('https://evil.example/url?q=https%3A%2F%2Fexample.com%2F');
+  LinkGuard.rewrite(a, on, 'www.google.com');
+  check('only the Google redirector is unwrapped', a.href, 'https://evil.example/url?q=https%3A%2F%2Fexample.com%2F');
+}
+
 /* The same parameters are still noise on a search results page. */
 url('google search still loses sa, usg and ved',
   'https://www.google.com/search?q=hello&sa=t&usg=abc&ved=xyz',
