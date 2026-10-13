@@ -186,6 +186,14 @@ chrome.scripting.executeScript is called once, with a function reference defined
 
 ---
 
+## Privacy policy URL
+
+https://github.com/paul2t/cleanurl/blob/main/PRIVACY.md
+
+Enter it in the Privacy tab, and on addons.mozilla.org under the listing's privacy policy. It states what the answers below declare: nothing collected, nothing transmitted.
+
+---
+
 ## Data usage
 
 Tick **nothing** in the data collection section, and certify all three statements. The extension collects none of the listed categories:

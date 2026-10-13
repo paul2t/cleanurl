@@ -378,7 +378,8 @@ popup asks for it the first time you press the button. If the browser closes
 the popup while asking, press the button again once it is granted.
 
 Nothing is sent anywhere — the rules are a static file in this folder and the
-only stored state is your settings plus two counters. (The debug build also
+only stored state is your settings plus two counters. See the
+[privacy policy](PRIVACY.md). (The debug build also
 keeps its log in memory; see above.) The popup's GitHub links only open a tab
 when you click them.
 
