@@ -19,6 +19,13 @@ Or from source, which is also the [debug build](#debug-build):
 2. Turn on **Developer mode**
 3. **Load unpacked** → pick this folder
 
+Firefox cannot load this folder directly: it is Chrome's manifest. Run
+`npm run dev:firefox`, then `about:debugging` → **This Firefox** → **Load
+Temporary Add-on…** → pick `dist/firefox-debug/manifest.json`. For the build
+that ships, pick `dist/cleanurl-<version>.xpi` instead (from
+`npm run package:firefox`). Never the `.zip`: that is the Chrome package. For
+Android, see [Testing on Firefox for Android](#testing-on-firefox-for-android).
+
 ## How it works
 
 Two layers, because neither one covers the whole problem on its own.
@@ -177,6 +184,7 @@ npm test
 ```
 npm run package          # dist/cleanurl-<version>.zip  for the Chrome Web Store
 npm run package:firefox  # dist/cleanurl-<version>.xpi  for addons.mozilla.org
+npm run dev:firefox      # dist/firefox-debug/          the debug build, for Firefox
 ```
 
 Both build, test, then write an archive with `manifest.json` at its root.
@@ -216,6 +224,52 @@ clean link** - there is no right-click menu to put it in. The packager rewrites 
 `declarativeNetRequest` itself needs only Firefox 113, so the floor is about
 the clipboard hook rather than the core cleaning.
 
+The manifest on disk cannot serve both browsers: Firefox needs
+`background.scripts`, and Chrome flags that key in a Manifest V3 manifest
+("'background.scripts' requires manifest version of 2 or lower"). So in Firefox
+the [debug build](#debug-build) is a generated folder: `npm run dev:firefox`
+writes `dist/firefox-debug/`, the Firefox package's files and manifest with the
+dev-only permissions kept and the debug log page added.
+
+### Testing on Firefox for Android
+
+Firefox for Android only installs signed add-ons from a file, so for testing,
+load it from your computer over USB with Mozilla's
+[`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/):
+
+1. **Phone:** turn on Android's Developer options and **USB debugging**, then
+   in Firefox for Android: **Settings → Remote debugging via USB**.
+2. **Computer:** install [adb](https://developer.android.com/tools/releases/platform-tools),
+   plug the phone in, accept the prompt on the phone, and get its id:
+
+   ```
+   adb devices
+   ```
+
+3. Build the Firefox debug folder and run it on the phone. `--firefox-apk` is
+   `org.mozilla.firefox` for the release, `org.mozilla.firefox_beta` for Beta,
+   `org.mozilla.fenix` for Nightly:
+
+   ```
+   npm run dev:firefox
+   npx web-ext run --target=firefox-android --android-device=<id> --firefox-apk=org.mozilla.firefox --source-dir=dist/firefox-debug
+   ```
+
+   To test exactly what ships instead, unzip `dist/cleanurl-<version>.xpi` into
+   a folder and point `--source-dir` at it.
+
+4. **Debugging:** desktop Firefox → `about:debugging` → **Setup** → enable USB
+   devices, then pick the phone to inspect the background page and see its
+   console. The popup opens from Firefox's menu → **Extensions** → CleanURL.
+
+The extension stays installed until Firefox on the phone closes. No phone? An
+Android emulator from Android Studio with Firefox installed works the same way.
+
+To install it on a phone for everyday use, it has to be signed by Mozilla: an
+[unlisted](https://extensionworkshop.com/documentation/publish/submitting-an-add-on/)
+signing gives an `.xpi` installable on any Firefox, and a listed one puts it on
+addons.mozilla.org.
+
 The manifest is rewritten on the way in to drop the dev-only permissions,
 `declarativeNetRequestFeedback` and `webRequest`. Chrome only fires
 `onRuleMatchedDebug` for an unpacked extension, so in a published build that
@@ -245,9 +299,10 @@ on this folder.
 ## Debug build
 
 Loading this folder unpacked (**Load unpacked** in `chrome://extensions`) is
-the debug build: its manifest keeps `webRequest`, which every package drops,
-and `Settings.isDebugBuild()` keys off that. A published build can never
-switch any of this on.
+the debug build; in Firefox, load `dist/firefox-debug/` from
+`npm run dev:firefox`. Both manifests keep `webRequest`, which every package
+drops, and `Settings.isDebugBuild()` keys off that. A published build can
+never switch any of this on.
 
 - **Debug log.** The popup shows a **debug log** link, which opens
   `src/debug.html`. Every top-level navigation with a query string, every

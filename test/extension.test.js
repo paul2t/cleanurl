@@ -249,6 +249,26 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
   eq('firefox keeps the same content scripts',
     JSON.stringify(firefox.content_scripts), JSON.stringify(manifest.content_scripts));
 
+  /*
+   * Firefox cannot load the source folder (it is Chrome's manifest), so its
+   * debug build is a generated folder: the firefox manifest with the dev-only
+   * permissions kept, plus the debug page.
+   */
+  {
+    const debug = packager.packagedManifest(manifest, 'firefox', { debug: true }).manifest;
+    ok('the firefox debug build keeps the dev-only permissions',
+      packager.DEV_ONLY_PERMISSIONS.every((p) => debug.permissions.includes(p)));
+    ok('and is otherwise the firefox manifest',
+      !debug.background.service_worker && debug.background.scripts.length > 1 &&
+      !!debug.browser_specific_settings);
+    const extra = packager.debugFiles();
+    ok('the firefox debug build adds the debug page and its script',
+      extra.includes('src/debug.html') && extra.includes('src/debug.js'), extra.join(', '));
+    ok('every debug file exists', extra.every((f) => fs.existsSync(path.join(root, f))));
+  }
+  ok('the source manifest stays chrome-only: chrome flags background.scripts in MV3',
+    !manifest.background.scripts);
+
   ok('the chrome build is untouched by the firefox transform',
     !shipped.manifest.browser_specific_settings &&
     !!shipped.manifest.background.service_worker);

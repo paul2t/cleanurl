@@ -96,14 +96,18 @@ const TARGETS = {
   firefox: { extension: 'xpi', transform: forFirefox },
 };
 
-/** The manifest as it should ship for a target, plus what was taken out. */
-function packagedManifest(manifest, target) {
+/**
+ * The manifest as it should ship for a target, plus what was taken out.
+ * `options.debug` keeps the dev-only permissions, for the Firefox debug folder.
+ */
+function packagedManifest(manifest, target, options) {
   const config = TARGETS[target || 'chrome'];
   if (!config) throw new Error('unknown target: ' + target);
+  const debug = !!(options && options.debug);
   let shipped = JSON.parse(JSON.stringify(manifest));
-  const removed = (shipped.permissions || []).filter((p) => DEV_ONLY_PERMISSIONS.includes(p));
-  shipped.permissions = (shipped.permissions || []).filter(
-    (p) => !DEV_ONLY_PERMISSIONS.includes(p));
+  const removed = debug ? [] :
+    (shipped.permissions || []).filter((p) => DEV_ONLY_PERMISSIONS.includes(p));
+  shipped.permissions = (shipped.permissions || []).filter((p) => !removed.includes(p));
   shipped = config.transform(shipped);
   return { manifest: shipped, removed: removed, extension: config.extension };
 }
@@ -265,9 +269,53 @@ function zip(entries) {
   return Buffer.concat([...parts, directoryBuffer, end]);
 }
 
+/* ---- Firefox debug folder ----------------------------------------------- */
+
+/*
+ * The source folder is the debug build in Chrome, but Firefox cannot load it:
+ * it needs background.scripts, and Chrome flags that key in a Manifest V3
+ * manifest ("'background.scripts' requires manifest version of 2 or lower"),
+ * so the manifest on disk cannot carry both. Instead this writes
+ * dist/firefox-debug/: the Firefox package's files and manifest, with the
+ * dev-only permissions kept and the debug log page added. Load its
+ * manifest.json in about:debugging, or point web-ext at it.
+ */
+const DEBUG_DIR = path.join('dist', 'firefox-debug');
+
+/** Extra files only the debug build uses, reachable from code, not the manifest. */
+function debugFiles() {
+  return ['src/debug.html', ...pageReferences('src/debug.html')];
+}
+
+function writeFirefoxDebug() {
+  const { manifest, files } = collectFiles();
+  const shipped = packagedManifest(manifest, 'firefox', { debug: true });
+  const out = path.join(root, DEBUG_DIR);
+  fs.rmSync(out, { recursive: true, force: true });
+  const all = Array.from(new Set([...files, ...debugFiles()]));
+  for (const name of all) {
+    const target = path.join(out, name);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    if (name === 'manifest.json') {
+      fs.writeFileSync(target, JSON.stringify(shipped.manifest, null, 2) + '\n');
+    } else {
+      fs.copyFileSync(path.join(root, name), target);
+    }
+  }
+  console.log(`${all.length} files -> ${DEBUG_DIR.split(path.sep).join('/')}/ (Firefox debug build)`);
+  console.log('Load its manifest.json in about:debugging -> This Firefox -> Load Temporary Add-on.');
+}
+
 /* ---- main --------------------------------------------------------------- */
 
 function main() {
+  if (process.argv.includes('--debug')) {
+    if ((process.argv[2] || '') !== 'firefox') {
+      throw new Error('--debug is for firefox; in Chrome, load this folder unpacked');
+    }
+    writeFirefoxDebug();
+    return;
+  }
   const target = process.argv[2] || 'chrome';
   if (!TARGETS[target]) {
     throw new Error('unknown target "' + target + '"; expected one of ' +
@@ -306,6 +354,7 @@ function main() {
   }
 }
 
-module.exports = { collectFiles, zip, packagedManifest, DEV_ONLY_PERMISSIONS, TARGETS };
+module.exports = { collectFiles, zip, packagedManifest, debugFiles, DEV_ONLY_PERMISSIONS,
+  TARGETS };
 
 if (require.main === module) main();

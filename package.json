@@ -8,6 +8,7 @@
     "test": "node test/cleaner.test.js && node test/extension.test.js && node test/clipboard.test.js",
     "icons": "node tools/make-icons.js",
     "package": "npm run build && npm test && node tools/package.js chrome",
-    "package:firefox": "npm run build && npm test && node tools/package.js firefox"
+    "package:firefox": "npm run build && npm test && node tools/package.js firefox",
+    "dev:firefox": "npm run build && node tools/package.js firefox --debug"
   }
 }
