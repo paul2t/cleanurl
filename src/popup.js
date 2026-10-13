@@ -22,6 +22,7 @@
     openedText: document.getElementById('opened-text'),
     copyOriginal: document.getElementById('copy-original'),
     debugLog: document.getElementById('debug-log'),
+    report: document.getElementById('report'),
   };
 
   let settings = null;
@@ -267,6 +268,49 @@
 
   el.options.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
+    window.close();
+  });
+
+  const ISSUES = 'https://github.com/paul2t/cleanurl/issues/new';
+
+  /*
+   * A new GitHub issue with questions about the two URLs. The URLs themselves
+   * are left for the user to paste: putting the current page in the link
+   * would hand it to GitHub on the click, before the user has decided to
+   * send anything. Only the version and browser are filled in.
+   */
+  function issueUrl() {
+    const data = navigator.userAgentData;
+    const brand = data && data.brands &&
+      data.brands.find((b) => !/not.?a.?brand|chromium/i.test(b.brand));
+    const browser = brand ? `${brand.brand} ${brand.version}` :
+      (navigator.userAgent.match(/(Firefox|Edg|Chrome)\/[\d.]+/) || [navigator.userAgent])[0];
+    const body = [
+      '**The link you opened or copied** (the original URL):',
+      '',
+      '',
+      '**What CleanURL turned it into** (the URL you ended up with):',
+      '',
+      '',
+      '**What you expected instead:**',
+      '<!-- e.g. a tracker that was left in, or a parameter the page needed that was removed -->',
+      '',
+      '',
+      '**How you got there:**',
+      '<!-- opened the link / copied it / share button / right-click "Copy clean link" / clipboard button -->',
+      '',
+      '',
+      '<!-- Please remove anything personal from the URLs first (emails, tokens, account ids). -->',
+      '',
+      '---',
+      `CleanURL ${chrome.runtime.getManifest().version} · ${browser}`,
+    ].join('\n');
+    return ISSUES + '?' + new URLSearchParams({ title: 'Cleaning issue: ', body: body });
+  }
+
+  el.report.addEventListener('click', (event) => {
+    event.preventDefault();
+    chrome.tabs.create({ url: issueUrl() });
     window.close();
   });
 
