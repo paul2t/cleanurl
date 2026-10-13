@@ -240,19 +240,22 @@ load it from your computer over USB with Mozilla's
 1. **Phone:** turn on Android's Developer options and **USB debugging**, then
    in Firefox for Android: **Settings → Remote debugging via USB**.
 2. **Computer:** install [adb](https://developer.android.com/tools/releases/platform-tools),
-   plug the phone in, accept the prompt on the phone, and get its id:
+   plug the phone in, accept the prompt on the phone, and get its id - the
+   first column, e.g. `R58M12ABCDE` (`unauthorized` means the prompt is still
+   waiting on the phone):
 
    ```
    adb devices
    ```
 
-3. Build the Firefox debug folder and run it on the phone. `--firefox-apk` is
-   `org.mozilla.firefox` for the release, `org.mozilla.firefox_beta` for Beta,
-   `org.mozilla.fenix` for Nightly:
+3. Build the Firefox debug folder and run it on the phone, with your id in
+   place of `DEVICE_ID`. `--firefox-apk` is `org.mozilla.firefox` for the
+   release, `org.mozilla.firefox_beta` for Beta, `org.mozilla.fenix` for
+   Nightly. `npx` downloads `web-ext` the first time:
 
    ```
    npm run dev:firefox
-   npx web-ext run --target=firefox-android --android-device=<id> --firefox-apk=org.mozilla.firefox --source-dir=dist/firefox-debug
+   npx web-ext run --target=firefox-android --android-device=DEVICE_ID --firefox-apk=org.mozilla.firefox --source-dir=dist/firefox-debug
    ```
 
    To test exactly what ships instead, unzip `dist/cleanurl-<version>.xpi` into
