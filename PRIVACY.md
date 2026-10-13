@@ -1,6 +1,6 @@
 # CleanURL privacy policy
 
-_Effective 13 October 2026._
+_Effective 13 October 2026, updated 14 October 2026._
 
 CleanURL removes tracking parameters from the links you open and copy. It does
 this entirely inside your browser. **It collects no data, and sends nothing
@@ -40,6 +40,20 @@ tab, only when you click them. A new issue is pre-filled with the CleanURL
 version and your browser name, and nothing else. In particular, the address of
 the page you are on is not included. Nothing reaches GitHub unless you submit
 the issue, and GitHub's own privacy policy applies there.
+
+## Limited Use
+
+CleanURL's use of data complies with the
+[Chrome Web Store User Data Policy](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq),
+including the Limited Use requirements. The data it handles is the address
+of pages you open, links you copy, and your clipboard when you ask for it.
+That data is:
+
+- used only to remove tracking parameters from links, the extension's single
+  purpose;
+- never transferred to anyone, so never sold, never used for advertising or
+  creditworthiness, and never given to data brokers;
+- never read by a person: it never leaves your browser.
 
 ## Debug build
 
