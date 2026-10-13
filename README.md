@@ -175,6 +175,22 @@ npm test
   actually loads) against a stubbed DOM and checks each clipboard path end to
   end, plus the share-field fallback
 
+```
+npm run test:e2e
+```
+
+- `test/e2e.test.js` — the extension in a real browser: headless Chrome for
+  Testing with this folder (the debug build) loaded, against a local web
+  server. Trackers removed before load, wildcard names after it, `pushState`
+  and share-button copies, the debug log, the popup, the back/forward cache,
+  and the popup, settings and debug pages at a phone's width. It needs Chrome
+  for Testing, since branded Chrome ignores `--load-extension`: set
+  `CHROME_PATH`, or install it with
+  `npx @puppeteer/browsers install chrome@stable --path ~/.cache/puppeteer`.
+  Without it the run is skipped, not failed. The driver is
+  [`tools/chrome.js`](tools/chrome.js), plain DevTools protocol with no
+  dependencies.
+
 `npm run build` regenerates `src/page-world.js`; a test fails if it is stale.
 
 `npm run icons` regenerates `icons/*.png` from `tools/make-icons.js`.
