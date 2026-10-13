@@ -261,6 +261,14 @@ load it from your computer over USB with Mozilla's
    To test exactly what ships instead, unzip `dist/cleanurl-<version>.xpi` into
    a folder and point `--source-dir` at it.
 
+   If it loops on *"Waiting for org.mozilla.firefox Remote Debugging Server..."*,
+   Firefox's own switch is off: Android's USB debugging is not enough. In
+   Firefox on the phone: **⋮ → Settings → Advanced → Remote debugging via
+   USB**, then run it again. To check, with Firefox open,
+   `adb shell "cat /proc/net/unix | grep firefox-debugger-socket"` must print
+   a line. Add `--adb-remove-old-artifacts` to clear the copies earlier runs
+   left on the phone.
+
 4. **Debugging:** desktop Firefox → `about:debugging` → **Setup** → enable USB
    devices, then pick the phone to inspect the background page and see its
    console. The popup opens from Firefox's menu → **Extensions** → CleanURL.
