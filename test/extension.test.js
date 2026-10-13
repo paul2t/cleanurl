@@ -180,15 +180,9 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
     manifest.permissions
       .filter((p) => !packager.DEV_ONLY_PERMISSIONS.includes(p))
       .every((p) => shipped.manifest.permissions.includes(p)));
-  {
-    // Besides the permissions, the chrome package only drops firefox's keys.
-    const expected = JSON.parse(JSON.stringify(manifest));
-    delete expected.background.scripts;
-    delete expected.browser_specific_settings;
-    ok('the chrome package changes nothing but the permissions and firefox’s keys',
-      JSON.stringify(Object.assign({}, shipped.manifest, { permissions: manifest.permissions })) ===
-      JSON.stringify(expected));
-  }
+  ok('stripping changes nothing but the permission list',
+    JSON.stringify(Object.assign({}, shipped.manifest, { permissions: manifest.permissions })) ===
+    JSON.stringify(manifest));
   ok('the source manifest object is not mutated',
     manifest.permissions.includes('declarativeNetRequestFeedback'));
 
@@ -258,20 +252,6 @@ for (const [htmlPath, scriptPath] of [['src/popup.html', 'src/popup.js'],
   ok('the chrome build is untouched by the firefox transform',
     !shipped.manifest.browser_specific_settings &&
     !!shipped.manifest.background.service_worker);
-
-  /*
-   * The source folder loads unpacked in both browsers, so its manifest carries
-   * both browsers' keys; each package keeps only its own. The Firefox half on
-   * disk is written by hand, so it must match what the packager derives.
-   */
-  eq('the source manifest lists the same firefox background scripts the packager derives',
-    JSON.stringify(manifest.background.scripts),
-    JSON.stringify(packager.firefoxBackgroundScripts(worker)));
-  eq('the source manifest has the same gecko settings as the firefox package',
-    JSON.stringify(manifest.browser_specific_settings),
-    JSON.stringify(firefox.browser_specific_settings));
-  ok('the chrome package drops the firefox background scripts',
-    !shipped.manifest.background.scripts);
   eq('targets have distinct extensions',
     packager.TARGETS.chrome.extension + ',' + packager.TARGETS.firefox.extension, 'zip,xpi');
 
