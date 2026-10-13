@@ -185,7 +185,8 @@
         name: 'Spotify',
         hosts: ['spotify.com', 'spotify.link'],
         dnrDomains: ['spotify.com', 'spotify.link'],
-        params: ['si', 'nd', 'nid'],
+        // sci = the share card ("spotify:card-config:…") picked when sharing
+        params: ['si', 'nd', 'nid', 'sci'],
       },
       {
         name: 'LinkedIn',

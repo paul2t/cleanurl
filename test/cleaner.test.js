@@ -144,6 +144,10 @@ url('spotify si',
   'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT?si=8f2b1c',
   'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT');
 
+url('spotify share card id (sci)',
+  'https://open.spotify.com/episode/1Td4r6wo6h0A7RVFCUN7tb?si=2mehyf4-T-CsaUicXz4_fA&utm_source=copy-link&sci=spotify%3Acard-config%3A20miARoHjQtLBW03xrUWAO',
+  'https://open.spotify.com/episode/1Td4r6wo6h0A7RVFCUN7tb');
+
 url('tiktok share ids',
   'https://www.tiktok.com/@user/video/7100?is_from_webapp=1&sender_device=pc&web_id=99',
   'https://www.tiktok.com/@user/video/7100');
