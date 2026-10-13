@@ -23,6 +23,7 @@
     copyOriginal: document.getElementById('copy-original'),
     debugLog: document.getElementById('debug-log'),
     report: document.getElementById('report'),
+    source: document.getElementById('source'),
   };
 
   let settings = null;
@@ -271,7 +272,9 @@
     window.close();
   });
 
-  const ISSUES = 'https://github.com/paul2t/cleanurl/issues/new';
+  // Opened from code rather than linked, so no page here has an external href.
+  const REPO = 'https://github.com/paul2t/cleanurl';
+  const ISSUES = REPO + '/issues/new';
 
   /*
    * A new GitHub issue with questions about the two URLs. The URLs themselves
@@ -307,6 +310,12 @@
     ].join('\n');
     return ISSUES + '?' + new URLSearchParams({ title: 'Cleaning issue: ', body: body });
   }
+
+  el.source.addEventListener('click', (event) => {
+    event.preventDefault();
+    chrome.tabs.create({ url: REPO });
+    window.close();
+  });
 
   el.report.addEventListener('click', (event) => {
     event.preventDefault();
