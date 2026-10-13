@@ -11,6 +11,10 @@ https://www.instagram.com/p/Cx1y2z3/?igsh=MWQx%3D%3D       ->  https://www.insta
 
 ## Install
 
+**[CleanURL on the Chrome Web Store](https://chromewebstore.google.com/detail/cleanurl/cbgpaokaogdlafkoohoggdajocnhakbc)**
+
+Or from source, which is also the [debug build](#debug-build):
+
 1. Open `chrome://extensions`
 2. Turn on **Developer mode**
 3. **Load unpacked** → pick this folder
