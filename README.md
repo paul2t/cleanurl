@@ -68,23 +68,31 @@ So the page-world script records which hooks it installed on
   someone typing. It is not installed at all when the clipboard hook works.
 
 A third, smaller pass rewrites the address bar after load, which catches
-wildcard parameter names that `declarativeNetRequest` cannot express, Amazon's
-`/ref=…` path segments, and trackers a single-page app adds via `pushState`.
+wildcard parameter names that `declarativeNetRequest` cannot express, trackers
+in the path (Amazon's `/ref=…` segments, and share ids after a stray `&` in a
+`youtu.be/ID&si=…` link), and trackers a single-page app adds via `pushState`.
 
 ## What it removes
 
-Roughly 190 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
-`mc_cid`, `mkt_tok`, `yclid`, `igshid`, Matomo, HubSpot, Klaviyo…) plus
-site-specific share identifiers for about 40 sites and site groups: YouTube `si`/`pp`, Instagram and
-Threads `igsh`, X `s`/`t`, TikTok's `share_*` set, Reddit `share_id`, Spotify
-`si`, LinkedIn `trk`, Amazon's `pd_rd_*`/`pf_rd_*`, Bilibili, AliExpress, and
-so on. Run the extension's **Settings** page for the full list.
+Roughly 210 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
+`mc_cid`, `mkt_tok`, `yclid`, `igshid`, Matomo, HubSpot, Klaviyo, Bronto,
+Webtrends, Branch.io…) plus site-specific share identifiers for about 40 sites
+and site groups: YouTube `si`/`pp`/`is`, Instagram and Threads `igsh`/`psln`,
+X `s`/`t`, TikTok's `share_*` set, Reddit `share_id`, Spotify `si`, LinkedIn
+`trk`/`rcm`, Amazon's `pd_rd_*`/`pf_rd_*` and Associates tracking (`source`,
+`asc_source`, `asc_refurl` - the page you clicked the link on), Bilibili,
+AliExpress, and so on. Run the extension's **Settings** page for the full list.
+
+Redirect links are unwrapped to their destination when copied: Google, Facebook,
+Instagram, DuckDuckGo, Reddit, VK, Steam and a dozen more.
 
 Two deliberate omissions:
 
 - **Affiliate tags are kept by default.** They pay whoever shared the link, so
   removing them is a choice rather than a fix. There is a switch for it, which
   also unwraps affiliate network redirect links (Awin, Skimlinks, VigLink, CJ…).
+  On Amazon, `asc_campaign` and `ascsubtag` count as affiliate too: they are the
+  publisher's own reporting ids, kept alongside the `tag` that pays them.
 - **Nothing load-bearing is ever touched** — `code`, `state`, `token`,
   `redirect_uri`, `q`, `v`, `id`, `page` and friends. A test asserts this.
 
@@ -101,6 +109,13 @@ Right-click the toolbar icon → **Options**, or open the popup and hit
 
 The popup shows what would be stripped from the current page and offers a
 one-click clean copy.
+
+At the bottom, **Source code** opens this repository and **Report an issue**
+opens a new GitHub issue with questions about the link: what was opened or
+copied, what CleanURL turned it into, and what was expected. Only the
+extension version and browser are filled in. The current page's URL is left
+for you to paste, since putting it in the link would hand it to GitHub on the
+click, before you have decided to send anything.
 
 It also has a **Clean clipboard link** button. Press it and whatever link is on
 the clipboard right now is rewritten in place, with a line underneath saying
@@ -232,18 +247,32 @@ switch any of this on.
 
 - **Debug log.** The popup shows a **debug log** link, which opens
   `src/debug.html`. Every top-level navigation with a query string, every
-  address bar cleanup and every cleaned copy is listed with the URL before and
-  after, the parameters **removed**, and the parameters **kept**. The kept list
-  is where a missing rule shows up. Navigations also list each redirect and
-  whether CleanURL or the server made it. The same entries are echoed with
-  `console.debug` in the service worker's console.
+  address bar or `history` cleanup, every cleaned copy and every right-click
+  copy is listed with the URL it started from, each redirect on the way and
+  whether CleanURL or the server made it, and where it ended. Parameters are
+  colour-coded, as chips and in every URL line:
+  - **red** - tracking that was removed;
+  - **yellow** - affiliate credit, crossed out in the list when "Also remove
+    affiliate tags" took it out;
+  - **green** - everything else that was kept. This is where a missing rule
+    shows up.
+
+  You can filter by URL or parameter, show only entries with parameters left,
+  and copy the log as JSON. The same entries are echoed with `console.debug`
+  in the service worker's console.
 - **Removed when opened.** The popup says which trackers the network rules
   removed before the page loaded, with a **Copy original link** button for
   when a site needed one of them.
 
 The network rules rewrite a URL before the page exists, so the page never sees
-the original. `webRequest` (observe-only, no blocking) reports the rewrite as a
-redirect, which is the one place it is still visible.
+the original. `webRequest` (observe-only, no blocking) reports the rewrite,
+which is the one place it is still visible - though not tidily. Chrome often
+aborts a navigation's first attempt and restarts it under a new request id,
+sometimes from where a redirect led; and when a rule rewrites the target of a
+server redirect, some versions report no redirect at all while others report
+the pre-rewrite URL at the end. So navigations are followed per tab, a
+restart joins the navigation it continues, and the newest URL seen wins. The
+tests replay event sequences captured from Chrome.
 
 The log keeps the last 500 entries in `storage.session`: memory only, cleared
 when the browser closes, and not readable by content scripts. The page-world
@@ -261,7 +290,9 @@ to be present wherever a share button is.
 press it — never in the background, and never by a content script.
 
 Nothing is sent anywhere — the rules are a static file in this folder and the
-only stored state is your settings plus two counters.
+only stored state is your settings plus two counters. (The debug build also
+keeps its log in memory; see above.) The popup's GitHub links only open a tab
+when you click them.
 
 ## A copy came out dirty
 
@@ -292,9 +323,10 @@ main-world script, so letting one answer would report the whole page as
 blocked when it is fine.
 
 Note that the counter only sees what it can verify. Network-level cleanups are
-counted through `onRuleMatchedDebug`, which Chrome only fires for an unpacked
-extension — in a packed build the counter tracks in-page and copy cleanups
-only, and a quiet counter does not mean nothing is being stripped.
+only visible to an unpacked extension (the debug build counts them from
+`webRequest`) — in a packed build the counter tracks in-page and copy cleanups
+only, and a quiet counter does not mean nothing is being stripped. In the debug
+build, the debug log shows exactly what each layer did.
 
 ## Known limits
 
@@ -326,6 +358,11 @@ only, and a quiet counter does not mean nothing is being stripped.
   that outranks every stripping rule. The destination the redirect lands on is
   a fresh navigation and is cleaned normally.
 - Trackers inside the path rather than the query string need a per-site rule;
-  only Amazon has one so far.
-- `test/`, `tools/` and `package.json` are development-only. Zip just
-  `manifest.json`, `src/` and `icons/` if you publish this.
+  only Amazon (`/ref=…`) and youtu.be (`/ID&si=…`) have one so far. These run
+  in the content script and on copies only: the network rules can remove query
+  parameters, not edit a path, so `youtu.be/ID&si=…` still reaches youtu.be as
+  typed. Its server turns the ids into real parameters on youtube.com, where
+  they are removed before that page loads.
+- `test/`, `tools/` and `package.json` are development-only. Publish with
+  `npm run package` / `npm run package:firefox`, which leave them out, along
+  with the debug page and the dev-only permissions.
