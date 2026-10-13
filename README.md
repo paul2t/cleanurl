@@ -87,10 +87,11 @@ in the path (Amazon's `/ref=…` segments, and share ids after a stray `&` in a
 
 Roughly 260 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
 `mc_cid`, `mkt_tok`, `yclid`, `igshid`, Matomo, HubSpot, Klaviyo, Bronto,
-Webtrends, Branch.io…) plus site-specific share identifiers for about 40 sites
-and site groups: YouTube `si`/`pp`/`is`, Instagram and Threads `igsh`/`psln`,
-X `s`/`t`, TikTok's `share_*` set, Reddit `share_id`, Spotify `si`, LinkedIn
-`trk`/`rcm`, Amazon's `pd_rd_*`/`pf_rd_*` and Associates tracking (`source`,
+Webtrends, Branch.io, Triple Whale, Northbeam…) plus over 400 site-specific
+share and tracking identifiers for about 40 sites and site groups: YouTube
+`si`/`pp`/`is`, Instagram and Threads `igsh`/`igsi`/`stkn`/`psln`, X
+`s`/`t`, TikTok's `share_*` set, Reddit `share_id`, Spotify `si`/`sci`,
+Google search's `ei`/`ved`/`gs_lp`, LinkedIn `trk`/`rcm`, Amazon's `pd_rd_*`/`pf_rd_*` and Associates tracking (`source`,
 `asc_source`, `asc_refurl` - the page you clicked the link on), Bilibili,
 AliExpress, and so on. Run the extension's **Settings** page for the full list.
 

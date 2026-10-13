@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "engines": { "node": "^18 || >=20" },
-  "description": "Removes 600+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent.",
+  "description": "Removes 650+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent.",
   "scripts": {
     "build": "node tools/build-page-world.js",
     "test": "node test/cleaner.test.js && node test/extension.test.js && node test/clipboard.test.js",
