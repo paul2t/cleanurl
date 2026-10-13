@@ -90,6 +90,27 @@
       // Branch.io deep links, used by many apps
       '_branch_match_id', '_branch_referrer',
 
+      // From the tracking query params registry
+      // (github.com/mpchadwick/tracking-query-params-registry, Unlicense).
+      // Exact names only: nb_* would also catch French "nb" (number) fields.
+      // Ad click and ad ids: Nextdoor, Snapchat, Yahoo, Rokt, Google, TikTok,
+      // Pinterest, Criteo, real-time bidding
+      'ndclid', 'ScCid', 'scadid', 'vmcid', 'rtid', 'gadid', 'ttadid', 'padid',
+      'cto_pld', 'rtbhc',
+      // Attribution tools: Triple Whale, Northbeam, Klar, Billy Grace, Hyros
+      'tw_source', 'tw_campaign', 'tw_term', 'tw_content', 'tw_adid', 'tw_kwdid',
+      'nbt', 'nb_adtype', 'nb_ap', 'nb_expid_meta', 'nb_fii', 'nb_klid',
+      'nb_kwd', 'nb_li_ms', 'nb_lp_ms', 'nb_mi', 'nb_mt', 'nb_pc', 'nb_pi',
+      'nb_placement', 'nb_ppi', 'nb_ti',
+      'klar_source', 'klar_cpid', 'klar_adid',
+      'bg_kw', 'bg_aid_k', 'bg_aid_v', 'bg_campaign', 'bg_source', 'bg_source_id',
+      'fbc_id', 'h_ad_id',
+      // Meta placements, Springbot email, Channable feeds, cq_* campaign tags
+      'meta_placement', 'meta_site_source', 'redirect_mongo_id',
+      'redirect_log_mongo_id', 'channable',
+      'cq_cmp', 'cq_con', 'cq_med', 'cq_net', 'cq_plac', 'cq_plt', 'cq_src',
+      'cq_term',
+
       // Seznam's recommendation widget (Czech news sites)
       'dop_ab_variant', 'dop_source_zone_name', 'dop_req_id', 'dop_id',
     ],

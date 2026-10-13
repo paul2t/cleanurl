@@ -54,6 +54,18 @@ url('branch.io ids removed on any site',
   'https://example.com/a?_branch_match_id=123&_branch_referrer=abc',
   'https://example.com/a');
 
+url('attribution tools from the tracking params registry',
+  'https://shop.example/p?ndclid=1&ScCid=2&tw_source=fb&nbt=x&nb_placement=y&klar_cpid=3&bg_source=g&h_ad_id=4&cq_src=z&color=red',
+  'https://shop.example/p?color=red');
+
+url('French "nb" fields are not mistaken for Northbeam tags',
+  'https://boutique.example/liste?nb_articles=20&nb_pages=3',
+  'https://boutique.example/liste?nb_articles=20&nb_pages=3');
+
+url('Merchant Center promo codes are kept (they give the shopper a discount)',
+  'https://shop.example/p?gPromoCode=SAVE10&utm_source=google',
+  'https://shop.example/p?gPromoCode=SAVE10');
+
 url('unknown trk_* variant caught by pattern',
   'https://example.com/a?trk_new_thing=1&trk=keep',
   'https://example.com/a?trk=keep');
