@@ -309,6 +309,14 @@ url('amazon /ref= path segment and query noise',
   'https://www.amazon.com/Some-Product/dp/B0ABCDEFGH/ref=sr_1_3?qid=1700000000&sr=8-3&keywords=thing',
   'https://www.amazon.com/Some-Product/dp/B0ABCDEFGH?keywords=thing');
 
+url('amazon /ref= segment with the session id after it',
+  'https://www.amazon.fr/Castlevania-Belmonts-Curse-Midnight-Edition-PS5/dp/B0GNGVTQNT/ref=zg_bsnr_g_20904281031_d_sccl_3/257-9953909-8897161',
+  'https://www.amazon.fr/Castlevania-Belmonts-Curse-Midnight-Edition-PS5/dp/B0GNGVTQNT');
+
+url('a path segment that only looks like digits is kept without a ref before it',
+  'https://www.amazon.fr/gp/order/257-9953909-8897161',
+  'https://www.amazon.fr/gp/order/257-9953909-8897161');
+
 url('linkedin trk',
   'https://www.linkedin.com/posts/someone_activity-123?trk=public_post&lipi=urn%3Ali%3Apage%3Ax',
   'https://www.linkedin.com/posts/someone_activity-123');

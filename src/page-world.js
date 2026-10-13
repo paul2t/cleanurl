@@ -724,7 +724,9 @@
                 'amazon.se', 'amazon.pl', 'amazon.com.mx',
                 'amazon.cn', 'amazon.sg', 'amazon.ae', 'amazon.sa',
                 'amazon.eg', 'amazon.com.tr', 'amazon.com.be'],
-        re: '/ref=[^/?#]*',
+        // Best-seller lists add the session id after it, as its own segment:
+        // /ref=zg_bsnr_…/257-9953909-8897161. It goes with the ref.
+        re: '/ref=[^/?#]*(?:/\\d{3}-\\d{7}-\\d{7}(?=[/?#]|$))?',
         replace: '',
       },
     ],
