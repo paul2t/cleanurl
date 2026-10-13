@@ -298,7 +298,15 @@ out of the manifest (icons, content scripts, the service worker's
 `importScripts` arguments, and what the popup and options pages load), so
 `test/`, `tools/`, `package.json` and `src/content-main.js` - which exists only
 to feed the generated bundle - are left out without a hand-maintained list to
-drift. Output is reproducible: the same tree packs to the same bytes.
+drift. Output is reproducible: the same tree packs to the same bytes on the
+same Node version. Across versions the files inside are identical, but
+Node's bundled zlib changes between releases and compresses them slightly
+differently, so the archive bytes differ (Node 18 on Linux against Node 24 on
+Windows, for one).
+
+The tooling needs Node 18 or later and nothing else: no `npm install`, and no
+`zip` or `unzip` on the system. `npm test` and both packages build on Windows
+and on Linux (checked under WSL with Ubuntu 24.04's Node 18).
 
 There is no command that produces a Web Store submission directly; you upload
 that zip. A `.crx` comes from Chrome itself:

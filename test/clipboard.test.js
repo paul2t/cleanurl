@@ -11,6 +11,18 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
+/*
+ * Node has a global CustomEvent only from 19. Node 18 - what Ubuntu 24.04
+ * ships, so what a WSL setup usually has - has Event but not this, and every
+ * test below would die on the first use.
+ */
+const CustomEvent = globalThis.CustomEvent || class CustomEvent extends Event {
+  constructor(type, options) {
+    super(type, options);
+    this.detail = options && options.detail !== undefined ? options.detail : null;
+  }
+};
+
 const root = path.join(__dirname, '..');
 let passed = 0;
 const failures = [];

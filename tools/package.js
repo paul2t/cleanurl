@@ -16,7 +16,9 @@
  *
  * The zip is written by hand because Node has no archiver and the extension
  * has no dependencies. Entries use a fixed timestamp, so packaging the same
- * tree twice produces byte-identical output.
+ * tree twice produces byte-identical output - on the same Node version. The
+ * deflate stream comes from Node's bundled zlib, which differs between
+ * releases, so another version gives the same files compressed differently.
  */
 'use strict';
 

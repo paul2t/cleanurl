@@ -3,6 +3,7 @@
   "version": "1.0.9",
   "private": true,
   "license": "MIT",
+  "engines": { "node": ">=18" },
   "description": "Chrome extension that strips campaign trackers and share IDs from URLs before pages load, and from links you copy.",
   "scripts": {
     "build": "node tools/build-page-world.js",
