@@ -62,10 +62,14 @@ const FIREFOX_MIN_VERSION = '128.0';
  * listed for the browser to load first. Derived from the actual call, so the
  * two cannot drift apart.
  */
+function firefoxBackgroundScripts(worker) {
+  return [...workerReferences(worker), worker];
+}
+
 function forFirefox(shipped) {
   const worker = shipped.background && shipped.background.service_worker;
   if (worker) {
-    shipped.background = { scripts: [...workerReferences(worker), worker] };
+    shipped.background = { scripts: firefoxBackgroundScripts(worker) };
   }
   shipped.browser_specific_settings = {
     /*
@@ -91,8 +95,21 @@ function forFirefox(shipped) {
   return shipped;
 }
 
+/*
+ * The manifest on disk declares both browsers' keys, so the source folder
+ * loads unpacked in either: Chrome ignores background.scripts when a
+ * service_worker is present and Firefox does the reverse. A package carries
+ * only its own browser's: the Chrome build drops Firefox's keys here, and
+ * forFirefox rewrites the rest from the source of truth above.
+ */
+function forChrome(shipped) {
+  if (shipped.background) delete shipped.background.scripts;
+  delete shipped.browser_specific_settings;
+  return shipped;
+}
+
 const TARGETS = {
-  chrome: { extension: 'zip', transform: (m) => m },
+  chrome: { extension: 'zip', transform: forChrome },
   firefox: { extension: 'xpi', transform: forFirefox },
 };
 
@@ -306,6 +323,7 @@ function main() {
   }
 }
 
-module.exports = { collectFiles, zip, packagedManifest, DEV_ONLY_PERMISSIONS, TARGETS };
+module.exports = { collectFiles, zip, packagedManifest, firefoxBackgroundScripts,
+  DEV_ONLY_PERMISSIONS, TARGETS };
 
 if (require.main === module) main();

@@ -15,7 +15,13 @@
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background.js",
+    "scripts": [
+      "src/rules.js",
+      "src/cleaner.js",
+      "src/settings.js",
+      "src/background.js"
+    ]
   },
   "action": {
     "default_popup": "src/popup.html",
@@ -53,5 +59,13 @@
       "all_frames": true,
       "world": "MAIN"
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko_android": { "strict_min_version": "128.0" },
+    "gecko": {
+      "id": "cleanurl@paul2t.github.io",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  }
 }

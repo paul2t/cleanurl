@@ -19,6 +19,11 @@ Or from source, which is also the [debug build](#debug-build):
 2. Turn on **Developer mode**
 3. **Load unpacked** → pick this folder
 
+In Firefox: `about:debugging` → **This Firefox** → **Load Temporary Add-on…** →
+pick `manifest.json` in this folder, or a packaged `dist/*.xpi`. Never the
+`.zip`: that is the Chrome package, and Firefox rejects its service worker.
+For Android, see [Testing on Firefox for Android](#testing-on-firefox-for-android).
+
 ## How it works
 
 Two layers, because neither one covers the whole problem on its own.
@@ -183,10 +188,16 @@ Both build, test, then write an archive with `manifest.json` at its root.
 
 ### Firefox and Firefox for Android
 
-One source tree, two manifests. Android runs the same build: the manifest
-declares `gecko_android` with the same version floor, because
-`declarativeNetRequest` and `content_scripts` `world` both mirror their desktop
-versions there.
+One source tree, one manifest that loads unpacked in both browsers. It declares
+`background.service_worker` for Chrome and `background.scripts` for Firefox
+(each browser ignores the other's key), plus Firefox's
+`browser_specific_settings`, which Chrome ignores without a warning. Each
+package keeps only its own browser's keys, and a test checks the Firefox half
+on disk matches what the packager derives, so the two cannot drift.
+
+Android runs the same build: the manifest declares `gecko_android` with the
+same version floor, because `declarativeNetRequest` and `content_scripts`
+`world` both mirror their desktop versions there.
 
 One API does not exist on Android at all: **`menus`/`contextMenus`**. That
 matters more than a missing feature, because the listener is registered at the
@@ -215,6 +226,45 @@ clean link** - there is no right-click menu to put it in. The packager rewrites 
 
 `declarativeNetRequest` itself needs only Firefox 113, so the floor is about
 the clipboard hook rather than the core cleaning.
+
+### Testing on Firefox for Android
+
+Firefox for Android only installs signed add-ons from a file, so for testing,
+load it from your computer over USB with Mozilla's
+[`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/):
+
+1. **Phone:** turn on Android's Developer options and **USB debugging**, then
+   in Firefox for Android: **Settings → Remote debugging via USB**.
+2. **Computer:** install [adb](https://developer.android.com/tools/releases/platform-tools),
+   plug the phone in, accept the prompt on the phone, and get its id:
+
+   ```
+   adb devices
+   ```
+
+3. Run the extension on the phone. `--firefox-apk` is `org.mozilla.firefox` for
+   the release, `org.mozilla.firefox_beta` for Beta, `org.mozilla.fenix` for
+   Nightly:
+
+   ```
+   npx web-ext run --target=firefox-android --android-device=<id> --firefox-apk=org.mozilla.firefox --ignore-files="test/**" "tools/**" "dist/**" "webstore/**"
+   ```
+
+   That runs this folder, which is the debug build. To test exactly what ships,
+   unzip `dist/cleanurl-<version>.xpi` into a folder and add
+   `--source-dir=<that folder>`.
+
+4. **Debugging:** desktop Firefox → `about:debugging` → **Setup** → enable USB
+   devices, then pick the phone to inspect the background page and see its
+   console. The popup opens from Firefox's menu → **Extensions** → CleanURL.
+
+The extension stays installed until Firefox on the phone closes. No phone? An
+Android emulator from Android Studio with Firefox installed works the same way.
+
+To install it on a phone for everyday use, it has to be signed by Mozilla: an
+[unlisted](https://extensionworkshop.com/documentation/publish/submitting-an-add-on/)
+signing gives an `.xpi` installable on any Firefox, and a listed one puts it on
+addons.mozilla.org.
 
 The manifest is rewritten on the way in to drop the dev-only permissions,
 `declarativeNetRequestFeedback` and `webRequest`. Chrome only fires
