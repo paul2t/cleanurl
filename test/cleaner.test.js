@@ -124,6 +124,10 @@ url('instagram stkn share token',
   'https://www.instagram.com/reel/DcuZPkpAq_m/?stkn=OThqd284MGd1cnR1',
   'https://www.instagram.com/reel/DcuZPkpAq_m/');
 
+url('instagram igsi share id',
+  'https://www.instagram.com/reel/Dc1VyKvtNsZ/?igsi=MW93MGV2enp5b28zag==',
+  'https://www.instagram.com/reel/Dc1VyKvtNsZ/');
+
 url('stkn is left alone off instagram',
   'https://example.com/?stkn=abc',
   'https://example.com/?stkn=abc');
