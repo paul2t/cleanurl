@@ -431,7 +431,7 @@ document.documentElement.getAttribute('data-cleanurl-page-world')
 ```
 
 - `"clipboard,clipboard-write,setdata,copyevent,share,history"` — every hook is
-  in. A Copy button producing a dirty link now means the parameter is not in
+  in (plus `google-open` on Google's own pages, see Known limits). A Copy button producing a dirty link now means the parameter is not in
   the rules; add it under **Extra parameters to remove** in Settings.
 - `null` — the page-world script never ran at all. Either the tab predates the
   extension being loaded (content scripts only inject on page load, so reload
@@ -477,7 +477,10 @@ build, the debug log shows exactly what each layer did.
   links you click on Google's own pages ([`src/link-guard.js`](src/link-guard.js)):
   just before a click, middle-click or right-click, a Google redirect link is
   swapped for its cleaned destination and the `ping` beacon on search results
-  is dropped, so Google logs neither. Not to navigation in general: the
+  is dropped, so Google logs neither. Some Google pages open the redirect from
+  script instead - Maps' "Website" button calls
+  `window.open('/url?url=…&usg=…')` - so the page-world script also wraps
+  `window.open` on Google's pages only (the `google-open` hook). Not to navigation in general: the
   network rules cannot decode the destination, and for a `google.com/url`
   link found anywhere else, Google's "Redirect notice" is what protects
   against phishing links dressed up as Google ones.

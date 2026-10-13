@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const SOURCES = ['rules.js', 'cleaner.js', 'copy-guard.js', 'content-main.js'];
+const SOURCES = ['rules.js', 'cleaner.js', 'copy-guard.js', 'link-guard.js', 'content-main.js'];
 const OUTPUT = path.join(root, 'src', 'page-world.js');
 
 function build() {

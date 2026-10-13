@@ -17,6 +17,11 @@
  * The href is changed at that moment rather than when the page loads because
  * Google rewrites its result links to /url on mousedown.
  *
+ * Some Google pages skip the href entirely: Maps' "Website" button cancels the
+ * click and calls window.open('/url?url=…&usg=…'). The page-world script
+ * (content-main.js) wraps window.open on Google pages for that, using
+ * destinationFor() below, which is why this file is in that bundle too.
+ *
  * Follows the "Unwrap redirect links" setting and the allowlist, like copies.
  */
 'use strict';
@@ -39,13 +44,38 @@
     return null;
   }
 
+  /** Whether this page is one where Google's links may be unwrapped. */
+  function active(settings, pageHost) {
+    return !!settings && settings.enabled && settings.unwrapRedirects &&
+      isGoogleHost(pageHost) && !Clean.isAllowlisted(pageHost, settings.allowlist);
+  }
+
+  /**
+   * Where `url` - possibly relative, as Maps passes it to window.open - should
+   * go instead, when it is a Google redirect followed from a Google page:
+   * { from, to, removed }, or null to leave it alone.
+   */
+  function destinationFor(url, settings, page) {
+    const pageHost = page && page.hostname;
+    if (!active(settings, pageHost)) return null;
+    let absolute;
+    try {
+      absolute = new URL(String(url), page.href);
+    } catch (e) {
+      return null;
+    }
+    if (!isGoogleHost(absolute.hostname) || !Clean.isRedirector(absolute.href)) return null;
+    const result = Clean.cleanUrl(absolute.href, settings);
+    if (!result.unwrapped) return null;
+    return { from: absolute.href, to: result.url, removed: result.removed };
+  }
+
   /**
    * Rewrites `link` in place when it is a Google redirect link on a Google
-   * page. Returns what changed, or null.
+   * page, and drops its ping. Returns what changed, or null.
    */
   function rewrite(link, settings, pageHost) {
-    if (!link || !settings || !settings.enabled || !settings.unwrapRedirects) return null;
-    if (!isGoogleHost(pageHost) || Clean.isAllowlisted(pageHost, settings.allowlist)) return null;
+    if (!link || !active(settings, pageHost)) return null;
 
     let pinged = false;
     if (link.hasAttribute && link.hasAttribute('ping')) {
@@ -54,19 +84,10 @@
     }
 
     const from = link.href;
-    let host = '';
-    try {
-      host = new URL(from).hostname;
-    } catch (e) {
-      return pinged ? { from: from, to: from, removed: ['ping'] } : null;
-    }
-    if (!isGoogleHost(host) || !Clean.isRedirector(from)) {
-      return pinged ? { from: from, to: from, removed: ['ping'] } : null;
-    }
-    const result = Clean.cleanUrl(from, settings);
-    if (!result.unwrapped) return pinged ? { from: from, to: from, removed: ['ping'] } : null;
-    link.href = result.url;
-    return { from: from, to: result.url, removed: result.removed.concat(pinged ? ['ping'] : []) };
+    const target = destinationFor(from, settings, { hostname: pageHost, href: from });
+    if (!target) return pinged ? { from: from, to: from, removed: ['ping'] } : null;
+    link.href = target.to;
+    return { from: from, to: target.to, removed: target.removed.concat(pinged ? ['ping'] : []) };
   }
 
   /**
@@ -93,6 +114,11 @@
     return onUse;
   }
 
-  root.CleanURLLinkGuard = { install: install, rewrite: rewrite, isGoogleHost: isGoogleHost };
+  root.CleanURLLinkGuard = {
+    install: install,
+    rewrite: rewrite,
+    destinationFor: destinationFor,
+    isGoogleHost: isGoogleHost,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CleanURLLinkGuard;
 })(typeof globalThis !== 'undefined' ? globalThis : self);

@@ -631,6 +631,16 @@ url('vk away.php on the bare domain',
   check('the ping beacon of a result is removed', a.pinged, false);
   check('and a direct link is left as it is', a.href, 'https://www.ap-reiki.fr/');
 
+  // Maps' "Website" button hands window.open a relative URL instead.
+  const opened = LinkGuard.destinationFor(
+    '/url?url=http%3A%2F%2Fwww.facebook.com%2Fmrabet.bros&sa=t&rct=j&source=maps&usg=AOvVaw1y&ved=1i%3A2',
+    on, { hostname: 'www.google.com', href: 'https://www.google.com/maps/search/x' });
+  check('a relative redirect opened by script on Google goes to its destination',
+    opened && opened.to, 'http://www.facebook.com/mrabet.bros');
+  check('but not when the page is not Google', LinkGuard.destinationFor(
+    '/url?url=http%3A%2F%2Fwww.facebook.com%2F&usg=x', on,
+    { hostname: 'shop.example', href: 'https://shop.example/' }), null);
+
   a = link('https://evil.example/url?q=https%3A%2F%2Fexample.com%2F');
   LinkGuard.rewrite(a, on, 'www.google.com');
   check('only the Google redirector is unwrapped', a.href, 'https://evil.example/url?q=https%3A%2F%2Fexample.com%2F');

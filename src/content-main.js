@@ -45,11 +45,13 @@
 
   const Clean = window.CleanURL;
   const CopyGuard = window.CleanURLCopyGuard;
+  const LinkGuard = window.CleanURLLinkGuard;
   // Hand the page back a pristine global object.
   try {
     delete window.CleanURL;
     delete window.CLEANURL_RULES;
     delete window.CleanURLCopyGuard;
+    delete window.CleanURLLinkGuard;
   } catch (e) { /* non-configurable, never mind */ }
   if (!Clean || !CopyGuard) {
     installed.push('!deps');
@@ -293,6 +295,39 @@
     }, original);
     return proto.share !== original;
   });
+
+  /* ---------------------------------------------------------------- *
+   * Google redirect links opened from script
+   * ---------------------------------------------------------------- */
+
+  /*
+   * Maps' "Website" button, for one, cancels the click and calls
+   * window.open('/url?url=…&usg=…', '_blank'), so the link's own href - which
+   * the isolated world swaps on click - never matters. On Google's pages
+   * only, a Google redirect handed to window.open goes straight to its
+   * cleaned destination instead. Elsewhere this hook is not installed.
+   */
+  if (LinkGuard && LinkGuard.isGoogleHost(location.hostname)) {
+    hook('google-open', () => {
+      const original = window.open;
+      if (typeof original !== 'function') return false;
+      window.open = mask(function open(url) {
+        const args = Array.prototype.slice.call(arguments);
+        try {
+          if (url !== undefined && url !== null && url !== '') {
+            const target = LinkGuard.destinationFor(url, settings, location);
+            if (target) {
+              args[0] = target.to;
+              report('url', 1, { source: 'google window.open', from: target.from,
+                to: target.to, removed: target.removed });
+            }
+          }
+        } catch (e) { /* open what the page asked for */ }
+        return original.apply(this, args);
+      }, original);
+      return window.open !== original;
+    });
+  }
 
   /* ---------------------------------------------------------------- *
    * Single page app navigations that re-add trackers
