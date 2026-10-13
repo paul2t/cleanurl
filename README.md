@@ -195,6 +195,12 @@ npm run test:e2e
 
 `npm run icons` regenerates `icons/*.png` from `tools/make-icons.js`.
 
+`npm run store-images` writes the store listing images to `webstore/`: three
+1280×800 screenshots, the 440×280 small promo tile and the 1400×560 marquee.
+It captures the real popup and settings page from the Chrome store build in
+Chrome for Testing (like the end-to-end tests), on made-up domains served
+locally, so rerun it after changing the UI.
+
 ## Packaging
 
 ```

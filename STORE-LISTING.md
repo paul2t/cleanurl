@@ -74,6 +74,17 @@ It asks for access to all sites because tracking parameters turn up on links to 
 
 ---
 
+## Images
+
+Upload from `webstore/`, written by `npm run store-images`:
+
+- Screenshots (1280×800): `screenshot-1-before-load.png`, `screenshot-2-copies.png`, `screenshot-3-settings.png`
+- Small promo tile (440×280): `promo-small-440x280.png`
+- Marquee (1400×560): `promo-marquee-1400x560.png`
+- Icon (128×128): `icon-128.png`
+
+---
+
 ## Category
 
 Privacy & Security is the better fit than Tools: the listing is about what leaves your browser, and reviewers read the category alongside the single-purpose statement.
