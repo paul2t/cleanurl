@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CleanURL debug log</title>
 <style>
   :root {
@@ -87,6 +88,12 @@
   .urls .value .gone { color: var(--removed); background: var(--removed-bg); border-radius: 3px; }
   .urls .value .affiliate { color: var(--affiliate); background: var(--affiliate-bg); border-radius: 3px; }
   .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+  @media (max-width: 560px) {
+    body { padding: 14px 12px 32px; }
+    input[type="search"] { width: 100%; font-size: 16px; }
+    .urls { grid-template-columns: 1fr; gap: 0 0; }
+    .urls .label { margin-top: 4px; }
+  }
 </style>
 </head>
 <body>

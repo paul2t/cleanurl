@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CleanURL settings</title>
 <style>
   :root {
@@ -72,6 +73,22 @@
   button:hover { border-color: var(--accent); }
   #saved { color: #16a34a; font-size: 12.5px; opacity: 0; transition: opacity .2s; }
   #saved.show { opacity: 1; }
+  code { word-break: break-word; }
+
+  /* Phones, where Firefox for Android opens this page full screen. */
+  @media (max-width: 560px) {
+    body { padding: 18px 12px 48px; font-size: 15px; }
+    .lede { margin-bottom: 18px; }
+    section { padding: 2px 14px; border-radius: 12px; }
+    .field { gap: 14px; padding: 13px 0; }
+    .field > input[type=checkbox] { width: 22px; height: 22px; margin-top: 1px; }
+    .field p, .block p { font-size: 13.5px; }
+    /* Under 16px, mobile browsers zoom in when a field is tapped. */
+    textarea { font-size: 16px; min-height: 96px; }
+    .coverage { columns: 1; font-size: 13.5px; }
+    .coverage li { padding: 3px 0; }
+    button { padding: 11px 16px; }
+  }
 </style>
 </head>
 <body>
