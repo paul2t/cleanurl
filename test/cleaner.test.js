@@ -152,6 +152,10 @@ url('instagram stkn share token',
   'https://www.instagram.com/reel/DcuZPkpAq_m/?stkn=OThqd284MGd1cnR1',
   'https://www.instagram.com/reel/DcuZPkpAq_m/');
 
+url('instagram xtok share token',
+  'https://www.instagram.com/reel/DedAQlvTLBR/?xtok=ejV0bG13bDgzMHl6',
+  'https://www.instagram.com/reel/DedAQlvTLBR/');
+
 url('instagram igsi share id',
   'https://www.instagram.com/reel/Dc1VyKvtNsZ/?igsi=MW93MGV2enp5b28zag==',
   'https://www.instagram.com/reel/Dc1VyKvtNsZ/');

@@ -189,8 +189,9 @@
         name: 'Instagram / Threads',
         hosts: ['instagram.com', 'threads.net', 'threads.com'],
         dnrDomains: ['instagram.com', 'threads.net', 'threads.com'],
+        // xtok is base64 of a short opaque id, minted per share like igsh
         params: ['igsh', 'igshid', 'igsi', 'xmt', 'img_index_share', 'psln',
-                 'stkn'],
+                 'stkn', 'xtok'],
       },
       {
         name: 'X / Twitter',
