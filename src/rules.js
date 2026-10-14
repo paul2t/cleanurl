@@ -692,6 +692,11 @@
       { hosts: ['track.effiliation.com'], params: ['url'], affiliate: true },
       { hosts: ['digidip.net'], params: ['url'], affiliate: true },
       { hosts: ['idealo-partner.com'], params: ['trg'], affiliate: true },
+      // A commerce-content redirector used by many media sites' "buy" links
+      { hosts: ['redirectingat.com'], params: ['url'], affiliate: true },
+      { hosts: ['ojrq.net'], paths: ['/p/'], params: ['return'], affiliate: true },
+      { hosts: ['rd.connexity.net'], paths: ['/rd'], params: ['t'], affiliate: true },
+      { hosts: ['t.cfjump.com'], params: ['Url'], affiliate: true },
     ],
   };
 

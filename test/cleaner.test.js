@@ -447,6 +447,25 @@ url('vk away.php on the bare domain',
   const cj = 'https://www.anrdoezrs.net/click-123-456?url=https%3A%2F%2Fshop.example%2F&sid=x';
   url('cj click link unwrapped on opt-in', cj, 'https://shop.example/',
     { removeAffiliate: true });
+
+  const redirectingat = 'https://press.redirectingat.com/?id=1&url=' +
+    'https%3A%2F%2Fshop.example%2Fitem';
+  url('RedirectingAt commerce-content link left whole by default',
+    redirectingat, redirectingat);
+  url('RedirectingAt commerce-content link unwrapped on opt-in',
+    redirectingat, 'https://shop.example/item', { removeAffiliate: true });
+
+  const connexity = 'https://rd.connexity.net/rd?cid=1&t=https%3A%2F%2Fshop.example%2F';
+  url('Connexity redirect unwrapped on opt-in', connexity,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const cfjump = 'https://t.cfjump.com/123/4/?Url=https%3A%2F%2Fshop.example%2F';
+  url('Commission Factory redirect unwrapped on opt-in', cfjump,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const ojrq = 'https://www.ojrq.net/p/?c=1&return=https%3A%2F%2Fshop.example%2F';
+  url('Impact Radius ojrq.net redirect unwrapped on opt-in', ojrq,
+    'https://shop.example/', { removeAffiliate: true });
   url('non-affiliate redirects still unwrap by default',
     'https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2F',
     'https://example.com/');
