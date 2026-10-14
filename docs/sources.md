@@ -89,13 +89,83 @@ parameters that are actually functional on the page.
   than just a rule dump. Surfaced two real gaps: the `sfmc_` prefix
   (Salesforce Marketing Cloud, added as a global pattern) and AppsFlyer's
   `af_*` attribution fields (added - `af_dp`/`af_web_dp` deliberately
-  excluded, those route the link). Also documents Adjust's `adj_*` family in
-  the same way, but without an exhaustive list of exact names; not added
-  without more confidence in the precise spellings, since guessing wrong on
-  an attribution-link family risks breaking the actual redirect.
+  excluded, those route the link). Also documented Adjust's `adj_*` family
+  without an exhaustive list of exact names, which held up adding it until
+  AdGuard's filter (below) gave the precise spellings.
 - **[hkitago/CleanURL](https://github.com/hkitago/CleanURL)** (MIT). Ships
   with an *empty* default parameter list (`DEFAULT_PARAM_KEYS = { general: [] }`)
   - fully user-configured, nothing to diff against.
+
+## Reviewed (npm registry)
+
+A `npm search`-style sweep (the registry API, since `npm search` itself is
+deprecated) for packages that strip tracking parameters. Most are thin
+wrappers around a short, already-covered list; a few package-manager entries
+are themselves a feed from a GitHub rules repo, already covered above under
+that project. Noted here to avoid re-checking the trivial ones.
+
+- **[@tickhq/clean-url](https://github.com/tickhq/clean-url)** (ISC). A large
+  (~970-domain) ClearURLs-style ruleset bundled as `dist/lib/rules.js`.
+  Its "Global" section surfaced real gaps later confirmed independently by
+  AdGuard's filter (below): the `adjust_*` family, Oracle Eloqua siblings,
+  `ir_adid`/`ir_campaignid`/`ir_partnerid`, `gps_adid`, `erid`, and more -
+  see the commit that added them. Its ~970 site-specific sections were not
+  diffed site-by-site; importing them wholesale would mean adding new sites,
+  not filling gaps in this project's existing ~40.
+- **[@inframanufaktur/clean-urls](https://github.com/inframanufaktur/clean-urls)**
+  (MIT). Small vendor-attributed list (`data/params.js`). Surfaced
+  `feeditemid`/`targetid` (Google Ads Shopping) and the full-word Matomo
+  siblings (`matomo_source` etc., beside the already-covered `mtm_*` and
+  `matomo_campaign`/`matomo_kwd`/`matomo_keyword`) and `pk_keyword`.
+- **[@url-sanitize/merged](https://www.npmjs.com/package/@url-sanitize/merged)**
+  (MIT) led to its real payoff: the per-source packages it depends on.
+  - **[@url-sanitize/adguard](https://www.npmjs.com/package/@url-sanitize/adguard)**
+    (LGPL-3.0-only) bundles AdGuard's actual "URL Tracking Protection" filter
+    list (github.com/AdguardTeam/FiltersRegistry) as adblock-syntax text with
+    a comment naming the tracking vendor above nearly every rule - the best
+    sourcing of any list checked so far. Its "General" section (global rules)
+    had 156 names this project didn't have; about two-thirds were added,
+    each with the vendor or GitHub issue AdGuard's own comment cited (Adjust,
+    AppsFlyer siblings, Oracle Eloqua, Mindbox, Ebis, Visumo, MyTracker,
+    Blueshift, Adsterra, Telegram Ads, Yahoo Japan/LINE ads, Cxense, GLAMI,
+    ChannelSight, Winfluencer, Emarsys, PersonaClick, and more). Its
+    ~3000-line "Specific web sites" section was not diffed - same reasoning
+    as tickhq's site sections above.
+  - **[@url-sanitize/brave](https://www.npmjs.com/package/@url-sanitize/brave)**
+    (MPL-2.0) bundles Brave's "Debouncer" redirect-skip list
+    (github.com/brave/adblock-lists). 178 redirect rules; most of the plain
+    ones not already covered were added (ShareASale Analytics, Pepperjam,
+    AvantLink, Partnerize, ClixGalore, ValueCommerce, GeoRiot, Impact.com's
+    pooled redirect domains, Firebase's `page.link`, PR Newswire, Adobe
+    Audience Manager, and more). A chunk need base64-decoding
+    (ActiveCampaign's `lt.acemlnN.com` family, `ouo.today`) or path-regex
+    extraction (`click.pstmrk.it`, `awstrack.me`, AMP viewer paths, Yandex's
+    `turbopages.org`) that this project's redirect unwrapper (`params` or
+    `rawQueryIsUrl` only) cannot express - a real feature gap, not just a
+    missing rule; left for whenever that lands.
+  - **[@url-sanitize/clearurls](https://www.npmjs.com/package/@url-sanitize/clearurls)**
+    (LGPL-3.0-only) and **[@url-sanitize/firefox](https://www.npmjs.com/package/@url-sanitize/firefox)**
+    (MPL-2.0, Mozilla's official query-stripping list from Remote Settings):
+    both fully covered already - useful as a confirmation that this
+    project's ClearURLs-derived core hasn't drifted, not as a source of
+    anything new.
+- **[linkcl](https://github.com/apiraino/link_cleaner)** (MIT). A small
+  redirect-unwrap map; cross-confirmed `t.mailpgn.com` and
+  `recruitics.com` from Brave's list (both added) and the Facebook `efg`
+  parameter and Matomo `pk_keyword` already covered by the time it was
+  checked.
+- **strip-tracking-params**, **url-cleaner-fiicher** (both MIT): short,
+  fully-covered lists, nothing to add.
+- **vue-url-cleaner** (MIT): an allowlist-based sanitizer with no built-in
+  blocklist at all - nothing to diff.
+- **@petitchevalroux/canonical-url** (GPL-3.0): two names
+  (`utm_*`, `xtor`), both already covered.
+- **@backrunner/url-cleaner**: despite the name, bundles uBlock Origin's
+  core engine and uAssets filter lists (blocking/redirecting scripts) rather
+  than query-parameter stripping - a different category of tool, not
+  compared.
+- **@url-sanitize/cli**, **@url-sanitize/core**: the CLI and compiler around
+  the catalogs above; no rule data of their own.
 
 ## Looked at, not worth a full pass
 

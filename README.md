@@ -85,7 +85,7 @@ in the path (Amazon's `/ref=…` segments, and share ids after a stray `&` in a
 
 ## What it removes
 
-Roughly 320 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
+Roughly 450 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
 `mc_cid`, `mkt_tok`, `yclid`, `igshid`, Matomo, HubSpot, Klaviyo, Bronto,
 Webtrends, Branch.io, Triple Whale, Northbeam…) plus over 450 site-specific
 share and tracking identifiers for about 40 sites and site groups: YouTube
@@ -157,11 +157,11 @@ Site rules also accept `hostRe` (a regex, for things like Google's many
 ccTLDs), `patterns` (regex parameter names, content-script only) and
 `affiliate` (only removed when the user opts in).
 
-The [ClearURLs rules](https://docs.clearurls.xyz/specs/rules) (LGPL-3.0), the
+The [ClearURLs rules](https://docs.clearurls.xyz/specs/rules) (LGPL-3.0),
+[AdGuard's URL Tracking Protection filter](https://github.com/AdguardTeam/FiltersRegistry)
+(LGPL-3.0), the
 [tracking query params registry](https://github.com/mpchadwick/tracking-query-params-registry)
-(Unlicense) and other cleaners such as
-[laststance/clean-url](https://github.com/laststance/clean-url) and
-[TinyTools_GetCleanURL](https://github.com/anti-racist/TinyTools_GetCleanURL)
+(Unlicense) and other cleaners - browser extensions and npm packages alike -
 are good places to look for candidates; several entries here were picked from
 them.
 Check each name before adding it: some of theirs are broad regexes, and a few
