@@ -204,6 +204,14 @@ url('tiktok share ids',
   'https://www.tiktok.com/@user/video/7100?is_from_webapp=1&sender_device=pc&web_id=99',
   'https://www.tiktok.com/@user/video/7100');
 
+url('tiktok embed and referer share metadata',
+  'https://www.tiktok.com/@user/video/7100?embed_source=1&referer_url=https%3A%2F%2Fx.example&referer_video_id=7099&share_author_id=55',
+  'https://www.tiktok.com/@user/video/7100');
+
+url('x.com refsrc (older spelling, no underscore)',
+  'https://x.com/someone/status/1234567890?refsrc=twsrc%5Etfw',
+  'https://x.com/someone/status/1234567890');
+
 url('reddit branch share ids (percent-encoded name)',
   'https://www.reddit.com/r/x/comments/abc/title/?share_id=Zm9v&%24deep_link=true&rdt=567',
   'https://www.reddit.com/r/x/comments/abc/title/');
@@ -219,6 +227,10 @@ url('reddit bot-check names are left alone elsewhere',
 url('facebook mibextid',
   'https://www.facebook.com/photo?fbid=123&mibextid=abcdef&__tn__=EH',
   'https://www.facebook.com/photo?fbid=123');
+
+url('facebook tracking param',
+  'https://www.facebook.com/story?fbid=123&tracking=abcdef',
+  'https://www.facebook.com/story?fbid=123');
 
 url('BBC pinned post and internal link tracking',
   'https://www.bbc.co.uk/news/live/world-123?pinned_post_asset_id=1&pinned_post_locator=urn:1&pinned_post_type=share&intlink_from_url=x&src_origin=y&page=2',
@@ -242,6 +254,13 @@ url('linkedin trk',
 url('linkedin rcm',
   'https://www.linkedin.com/posts/someone_activity-123?rcm=ACoAAB1234',
   'https://www.linkedin.com/posts/someone_activity-123');
+url('linkedin originalReferer from the auth wall',
+  'https://www.linkedin.com/posts/someone_activity-123?originalReferer=https%3A%2F%2Fexample.com',
+  'https://www.linkedin.com/posts/someone_activity-123');
+
+url('netflix trackId siblings',
+  'https://www.netflix.com/title/123?trackId=1&trackIdEpisode=2&trackIdJaw=3&trackIdTrailer=4',
+  'https://www.netflix.com/title/123');
 
 url('amazon refRID and wildcard cv_ct_* noise',
   'https://www.amazon.de/dp/B0123?refRID=XYZ&dchild=1&cv_ct_cx=foo&th=1',

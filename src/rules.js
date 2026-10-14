@@ -231,7 +231,7 @@
         hosts: ['twitter.com', 'x.com'],
         dnrDomains: ['twitter.com', 'x.com'],
         params: ['s', 't', 'cxt', 'ref_src', 'ref_url', 'twclid', 'src',
-                 'cn'],
+                 'cn', 'refsrc'],
       },
       {
         name: 'Facebook',
@@ -242,7 +242,7 @@
                  'paipv', 'eav', '_rdr',
                  'eid', 'comment_tracking', 'ls_ref', 'action_history',
                  'referral_story_type', 'sfnsn', 'wtsid', 'rdc', 'rdr',
-                 'hc_ref', 'hc_location', 'fref', '__xts__[0]'],
+                 'hc_ref', 'hc_location', 'fref', '__xts__[0]', 'tracking'],
       },
       {
         name: 'TikTok',
@@ -253,7 +253,9 @@
                  'share_link_id', 'share_iid', 'tt_from', 'source',
                  'preview_pb', 'checksum', 'u_code', 'timestamp',
                  'social_sharing', 'enable_checksum',
-                 'user_id', 'share_app_name'],
+                 'user_id', 'share_app_name',
+                 'embed_source', 'referer_url', 'referer_video_id',
+                 'share_author_id'],
       },
       {
         name: 'Reddit',
@@ -279,7 +281,9 @@
         hosts: ['linkedin.com', 'lnkd.in'],
         dnrDomains: ['linkedin.com', 'lnkd.in'],
         params: ['trk', 'trackingId', 'lipi', 'licu', 'midToken', 'midSig',
-                 'trkEmail', 'originTrackingId', 'refId', 'eBP', 'rcm'],
+                 'trkEmail', 'originTrackingId', 'refId', 'eBP', 'rcm',
+                 // carried back when LinkedIn's auth wall blocks a page
+                 'originalReferer'],
       },
       {
         name: 'Amazon',
@@ -381,7 +385,8 @@
         name: 'Netflix',
         hosts: ['netflix.com'],
         dnrDomains: ['netflix.com'],
-        params: ['trkid', 'tctx', 'trackId'],
+        params: ['trkid', 'tctx', 'trackId', 'trackIdEpisode', 'trackIdJaw',
+                 'trackIdTrailer'],
       },
       {
         name: 'Steam',
