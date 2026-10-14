@@ -434,9 +434,13 @@
         name: 'Apple',
         hosts: ['apple.com', 'apple.co'],
         dnrDomains: ['apple.com', 'apple.co'],
-        params: ['uo', 'ls', 'itsct', 'itscg', 'mttnsubad', 'cid',
+        params: ['uo', 'ls', 'itsct', 'itscg', 'cid',
                  'ign-itscg', 'ign-itsct'],
-        affiliate: ['at', 'ct'],
+        // mttn* is the Mattermost/Apptentive-style attribution vendor
+        // family mttnsubad already belonged to - all credit a sharer
+        affiliate: ['at', 'ct', 'mttnsubad', 'mttn3pid', 'mttnagencyid',
+                    'mttncc', 'mttnpid', 'mttnsiteid', 'mttnsubkw',
+                    'mttnsubplmnt'],
       },
       {
         name: 'Vimeo',

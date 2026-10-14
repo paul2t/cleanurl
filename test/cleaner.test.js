@@ -337,6 +337,10 @@ url('affiliate tag removed when opted in',
       'https://apps.apple.com/app/id1?at=1000l&ct=promo&uo=4',
       'https://apps.apple.com/app/id1?at=1000l&ct=promo',
       'https://apps.apple.com/app/id1'],
+    ['Apple mttn* attribution family',
+      'https://apps.apple.com/app/id1?mttnsubad=1&mttn3pid=2&mttnagencyid=3&mttncc=4&mttnpid=5&mttnsiteid=6&mttnsubkw=7&mttnsubplmnt=8&uo=4',
+      'https://apps.apple.com/app/id1?mttnsubad=1&mttn3pid=2&mttnagencyid=3&mttncc=4&mttnpid=5&mttnsiteid=6&mttnsubkw=7&mttnsubplmnt=8',
+      'https://apps.apple.com/app/id1'],
   ];
   for (const [label, input, kept, removed] of cases) {
     url(`${label}: kept by default`, input, kept);
