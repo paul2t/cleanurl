@@ -66,6 +66,14 @@ url('Merchant Center promo codes are kept (they give the shopper a discount)',
   'https://shop.example/p?gPromoCode=SAVE10&utm_source=google',
   'https://shop.example/p?gPromoCode=SAVE10');
 
+url('hubspot email, cookies, ads and social sharing',
+  'https://blog.example/post?_hsenc=p2ANq&_hsmi=12&__hstc=1.2&__hssc=3&__hsfp=4&hsa_cam=5&hsa_new_thing=6&hss_channel=tw-613456&page=2',
+  'https://blog.example/post?page=2');
+
+url('Bing MUID, GA client id, trk camelCase and newsletter tagging',
+  'https://example.com/a?msockid=0a1b&ga_cid=123.456&trkCampaign=x&trkContact=y&email_campaign=z&email_placement=hero&email_source=newsletter&id=7',
+  'https://example.com/a?id=7');
+
 url('unknown trk_* variant caught by pattern',
   'https://example.com/a?trk_new_thing=1&trk=keep',
   'https://example.com/a?trk=keep');
@@ -168,6 +176,14 @@ url('reddit branch share ids (percent-encoded name)',
   'https://www.reddit.com/r/x/comments/abc/title/?share_id=Zm9v&%24deep_link=true&rdt=567',
   'https://www.reddit.com/r/x/comments/abc/title/');
 
+url('reddit bot-check tokens',
+  'https://www.reddit.com/r/x/comments/abc/title/?solution=eyJ0eXAi&js_challenge=1&jsc_token=abc',
+  'https://www.reddit.com/r/x/comments/abc/title/');
+
+url('reddit bot-check names are left alone elsewhere',
+  'https://forum.example/thread?solution=42&js_challenge=1',
+  'https://forum.example/thread?solution=42&js_challenge=1');
+
 url('facebook mibextid',
   'https://www.facebook.com/photo?fbid=123&mibextid=abcdef&__tn__=EH',
   'https://www.facebook.com/photo?fbid=123');
@@ -186,6 +202,20 @@ url('linkedin rcm',
 url('amazon refRID and wildcard cv_ct_* noise',
   'https://www.amazon.de/dp/B0123?refRID=XYZ&dchild=1&cv_ct_cx=foo&th=1',
   'https://www.amazon.de/dp/B0123');
+
+/* These stores were absent from the host list, so their links kept
+ * everything, affiliate tags included. */
+for (const host of ['www.amazon.com.tr', 'www.amazon.cn', 'www.amazon.sg',
+                    'www.amazon.ae', 'www.amazon.sa', 'www.amazon.eg',
+                    'www.amazon.com.be']) {
+  url(`amazon store ${host}`,
+    `https://${host}/dp/B0123/ref=sr_1_1?pd_rd_i=B0123&ref=nav&psc=1&language=en`,
+    `https://${host}/dp/B0123?language=en`);
+}
+
+url('google AI Mode conversation state',
+  'https://www.google.com/search?q=who+won&udm=50&aep=11&mstk=AUtEx&csuir=173&mtid=abc',
+  'https://www.google.com/search?q=who+won&udm=50&aep=11');
 
 url('google play share campaign',
   'https://play.google.com/store/apps/details?id=org.mozilla.firefox&pcampaignid=web_share',
@@ -246,6 +276,10 @@ url('affiliate tag removed when opted in',
     ['affiliate network click ids on any site',
       'https://shop.example/item?cjevent=abc&awc=1_2&sscid=x&irclickid=y&irgwc=1&utm_source=z',
       'https://shop.example/item?cjevent=abc&awc=1_2&sscid=x&irclickid=y&irgwc=1',
+      'https://shop.example/item'],
+    ['Zanox click id',
+      'https://shop.example/item?zanpid=e&utm_source=z',
+      'https://shop.example/item?zanpid=e',
       'https://shop.example/item'],
     ['eBay Partner Network',
       'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001&_trksid=p1',

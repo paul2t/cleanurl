@@ -56,6 +56,9 @@
       // Mailchimp, HubSpot, Marketo, Klaviyo, Drip, MailerLite, Vero
       'mc_cid', 'mc_eid', 'mkt_tok',
       '_hsenc', '_hsmi', '__hssc', '__hstc', '__hsfp', 'hsCtaTracking',
+      // hss_channel is the social account a HubSpot post was shared from
+      // (tw-…, fbp-…, lcp-…); neither ^hsa_ nor ^__hs reaches it.
+      'hss_channel',
       'hsa_acc', 'hsa_cam', 'hsa_grp', 'hsa_ad', 'hsa_src', 'hsa_tgt',
       'hsa_kw', 'hsa_mt', 'hsa_net', 'hsa_ver',
       '_ke', '_kx', '__s', 'ml_subscriber', 'ml_subscriber_hash',
@@ -125,6 +128,16 @@
 
       // Seznam's recommendation widget (Czech news sites)
       'dop_ab_variant', 'dop_source_zone_name', 'dop_req_id', 'dop_id',
+
+      // From the comparison with anti-racist/TinyTools_GetCleanURL.
+      // msockid is Bing's and Edge's MUID cookie copied into the link;
+      // ga_cid is the Analytics client id, beside the ga_* family above.
+      'msockid', 'ga_cid',
+      // camelCase siblings of the trk_* family: ^trk_ does not match these
+      'trkCampaign', 'trkContact',
+      // Newsletter link tagging. email_id is left out: it is plausible as a
+      // record id in a webmail or CRM, and those pages need it.
+      'email_campaign', 'email_placement', 'email_source',
     ],
 
     /* Regexes (as strings, matched case-insensitively) applied by the content
@@ -152,6 +165,8 @@
       'subid', 'sub_id', 'utm_affiliate',
       // Affiliate networks' click ids: CJ, Awin, ShareASale, Impact
       'cjevent', 'awc', 'sscid', 'irclickid', 'irgwc',
+      // Zanox, now part of Awin
+      'zanpid',
     ],
 
     /* ------------------------------------------------------------------ *
@@ -212,7 +227,10 @@
         params: ['share_id', 'correlation_id', 'ref_campaign', 'ref_source',
                  'rdt', 'post_fullname', '$deep_link', '$original_url',
                  'chainedPosts',
-                 '$3p'],
+                 '$3p',
+                 // one-time tokens from the bot check that redirects back to
+                 // the page that was asked for
+                 'solution', 'js_challenge', 'jsc_token'],
       },
       {
         name: 'Spotify',
@@ -233,11 +251,16 @@
         hosts: ['amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
                 'amazon.it', 'amazon.es', 'amazon.ca', 'amazon.co.jp',
                 'amazon.com.au', 'amazon.in', 'amazon.com.br', 'amazon.nl',
-                'amazon.se', 'amazon.pl', 'amazon.com.mx', 'amzn.to'],
+                'amazon.se', 'amazon.pl', 'amazon.com.mx', 'amzn.to',
+                // Stores that were missing, so their links kept everything
+                'amazon.cn', 'amazon.sg', 'amazon.ae', 'amazon.sa',
+                'amazon.eg', 'amazon.com.tr', 'amazon.com.be'],
         dnrDomains: ['amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
                      'amazon.it', 'amazon.es', 'amazon.ca', 'amazon.co.jp',
                      'amazon.com.au', 'amazon.in', 'amazon.com.br',
-                     'amazon.nl', 'amazon.se', 'amazon.pl', 'amazon.com.mx'],
+                     'amazon.nl', 'amazon.se', 'amazon.pl', 'amazon.com.mx',
+                     'amazon.cn', 'amazon.sg', 'amazon.ae', 'amazon.sa',
+                     'amazon.eg', 'amazon.com.tr', 'amazon.com.be'],
         params: ['pd_rd_w', 'pd_rd_wg', 'pd_rd_r', 'pd_rd_i', 'pf_rd_p',
                  'pf_rd_r', 'pf_rd_s', 'pf_rd_t', 'pf_rd_i', 'pf_rd_m',
                  '_encoding', 'psc', 'qid', 'sr', 'sprefix', 'crid',
@@ -246,7 +269,9 @@
                  'social_share', 'starsLeft', 'skipTwisterOG', 'srs', 'colid',
                  'coliid',
                  // asc_refurl carries the page the link was clicked on
-                 'source', 'asc_source', 'asc_refurl'],
+                 'source', 'asc_source', 'asc_refurl',
+                 // bare ref, beside the ref_ above and the /ref= path segment
+                 'ref'],
         affiliate: ['tag', 'ascsubtag', 'linkCode', 'creative', 'creativeASIN',
                     'asc_campaign', 'linkId'],
         patterns: ['^cv_ct_', '^sb-ci-'],
@@ -305,7 +330,9 @@
                  'psi', 'ictx', 'cshid', 'vet', 'bshm',
                  'sei', 'gws_rd', 'gfe_rd', 'pcampaignid', 'fbs',
                  // gs_lp succeeds gs_lcp, sca_upv pairs with sca_esv, lei with ei
-                 'gs_lp', 'sca_upv', 'lei'],
+                 'gs_lp', 'sca_upv', 'lei',
+                 // AI Mode conversation state; the page mints a fresh set
+                 'mstk', 'csuir', 'mtid'],
       },
       {
         name: 'Twitch',
@@ -539,7 +566,9 @@
         hosts: ['amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
                 'amazon.it', 'amazon.es', 'amazon.ca', 'amazon.co.jp',
                 'amazon.com.au', 'amazon.in', 'amazon.com.br', 'amazon.nl',
-                'amazon.se', 'amazon.pl', 'amazon.com.mx'],
+                'amazon.se', 'amazon.pl', 'amazon.com.mx',
+                'amazon.cn', 'amazon.sg', 'amazon.ae', 'amazon.sa',
+                'amazon.eg', 'amazon.com.tr', 'amazon.com.be'],
         re: '/ref=[^/?#]*',
         replace: '',
       },
