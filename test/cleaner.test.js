@@ -240,6 +240,26 @@ url('walmart athena/mpid noise and a Google Shopping referral',
   'https://www.walmart.com/ip/Thing/123?athbdg=XX&mpid=1&wl13=abc&wmlspartner=wlpa&selectedSellerId=0&veh=sem&cn=x&color=red',
   'https://www.walmart.com/ip/Thing/123?color=red');
 
+url('bing nclid click id',
+  'https://www.bing.com/search?q=hello&nclid=abc123',
+  'https://www.bing.com/search?q=hello');
+
+url('etsy google ads/shopping attribution and share timestamp',
+  'https://www.etsy.com/listing/123/thing?gao=1&gpla=1&share_time=1700000000&ref=sc',
+  'https://www.etsy.com/listing/123/thing');
+
+url('github referral tracking links',
+  'https://github.com/owner/repo?ref_cta=Star&ref_loc=sidebar&ref_page=repo-overview&reference_location=repo-list',
+  'https://github.com/owner/repo');
+
+url('lazada share/session tokens',
+  'https://www.lazada.com/products/thing-i123.html?dsource=1&exlaz=abc&laz_share_info=x&laz_token=y',
+  'https://www.lazada.com/products/thing-i123.html');
+
+url('bilibili spmid, tdsourcetag and referral tags',
+  'https://www.bilibili.com/video/BV123?spmid=333.1.list&tdsourcetag=s_pctim_aiomsg&bsource=search&referfrom=search',
+  'https://www.bilibili.com/video/BV123');
+
 url('ebay click analytics blob',
   'https://www.ebay.com/itm/123?sojTags=bu:bu&_trksid=p1&hash=item1:g',
   'https://www.ebay.com/itm/123');

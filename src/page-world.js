@@ -365,7 +365,9 @@
                  'share_tag', 'share_from', 'unique_k', 'bbid', 'ts',
                  'timestamp', 'buvid', 'is_story_h5', 'up_id', 'plat_id',
                  'from_spmid', 'msource', 'refer_from',
-                 'seid', 'visit_id', 'broadcast_type', 'is_room_feed'],
+                 'seid', 'visit_id', 'broadcast_type', 'is_room_feed',
+                 // spm_id_from's sibling, and two more referral trackers
+                 'spmid', 'tdsourcetag', 'bsource', 'referfrom'],
       },
       {
         name: 'Google search',
@@ -412,7 +414,10 @@
         dnrDomains: ['etsy.com'],
         params: ['click_key', 'click_sum', 'ref', 'frs', 'sts',
                  'organic_search_click', 'bes', 'content_source', 'ga_order',
-                 'ga_search_type', 'ga_view_type', 'ga_search_query'],
+                 'ga_search_type', 'ga_view_type', 'ga_search_query',
+                 // Etsy's own Google Ads/Shopping attribution codes, and a
+                 // share-button timestamp
+                 'gao', 'gpla', 'share_time'],
       },
       {
         name: 'Substack',
@@ -496,13 +501,16 @@
         name: 'GitHub',
         hosts: ['github.com'],
         dnrDomains: ['github.com'],
-        params: ['email_source', 'email_token', 'notification_referrer_id'],
+        params: ['email_source', 'email_token', 'notification_referrer_id',
+                 'ref_cta', 'ref_loc', 'ref_page', 'reference_location'],
       },
       {
         name: 'Bing / MSN',
         hosts: ['bing.com', 'msn.com'],
         dnrDomains: ['bing.com', 'msn.com'],
-        params: ['cvid', 'ocid', 'form', 'sk', 'sp', 'sc', 'qs', 'qp'],
+        // nclid is Bing's own click id, parallel to Nextdoor's ndclid above
+        params: ['cvid', 'ocid', 'form', 'sk', 'sp', 'sc', 'qs', 'qp',
+                 'nclid'],
       },
       {
         name: 'News sites',
@@ -559,7 +567,9 @@
                      'lazada.co.th', 'lazada.co.id', 'lazada.com.my',
                      'lazada.com.ph', 'lazada.sg', 'lazada.vn'],
         params: ['publish_id', 'sp_atk', 'xptdk', 'clickTrackInfo', 'abid',
-                 'ad_src', 'pid_pvid', 'impsrc', 'spm', 'scm', 'pvid'],
+                 'ad_src', 'pid_pvid', 'impsrc', 'spm', 'scm', 'pvid',
+                 // Lazada's own share/session tokens
+                 'dsource', 'exlaz', 'laz_share_info', 'laz_token'],
       },
       {
         name: 'Flipkart',
