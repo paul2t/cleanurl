@@ -148,6 +148,37 @@
       // Newsletter link tagging. email_id is left out: it is plausible as a
       // record id in a webmail or CRM, and those pages need it.
       'email_campaign', 'email_placement', 'email_source',
+
+      // Seen independently in Eraser, CleanLinks and Linkumori's rulesets.
+      // otm_* is a third campaign-tag family alongside itm_* and stm_* above.
+      'otm_source', 'otm_medium', 'otm_campaign', 'otm_content', 'otm_term',
+      // mc_tc is a MailChimp tracking variant beside mc_cid and mc_eid
+      'mc_tc',
+      // Oracle Eloqua marketing automation
+      'recipientId', 'elqTrackId', 'elqTrack',
+      // utm_* siblings not in the original Urchin spec but used in the wild
+      'utm_userid', 'utm_mailing',
+      // Pinterest's own documented spelling, alongside epik above
+      '_epik',
+
+      // AppsFlyer's mobile-attribution parameters, landing on whatever page
+      // the install link points at. af_dp, af_web_dp and other af_*_dp
+      // fallback-destination fields are deliberately absent: those route the
+      // link and must survive.
+      'af_ad', 'af_ad_id', 'af_adset', 'af_adset_id', 'af_channel',
+      'af_keywords', 'af_cost_currency', 'af_cost_value', 'af_cost_model',
+      'af_click_lookback', 'af_viewthrough_lookback',
+      'af_reengagement_window', 'af_c_id', 'af_siteid',
+      'af_sub1', 'af_sub2', 'af_sub3', 'af_sub4', 'af_sub5', 'af_prt',
+
+      // Microsoft/Bing Ads' ValueTrack-style macros, landing on the
+      // advertiser's own page like matchtype above - not on bing.com itself
+      'hvadid', 'hvbmt', 'hvdev', 'hvlocint', 'hvlocphy', 'hvnetw', 'hvqmt',
+      'hvtargid',
+
+      // comScore Digital Analytix, seen on BBC and other news sites but a
+      // third-party vendor rather than anything BBC-specific
+      'ns_source', 'ns_mchannel', 'ns_campaign', 'ns_linkname', 'ns_fee',
     ],
 
     /* Regexes (as strings, matched case-insensitively) applied by the content
@@ -164,6 +195,8 @@
       '^__hs',
       '^_hs(enc|mi)$',
       '^at_(medium|campaign|custom\\d|link_|recipient|creation|variant|type|format|general|emailtype|send_date|ptr_)',
+      // Salesforce Marketing Cloud
+      '^sfmc_',
     ],
 
     /* Affiliate / referral credit. Off by default: stripping these takes money
@@ -478,7 +511,11 @@
         dnrDomains: ['bbc.com', 'bbc.co.uk'],
         params: ['at_medium', 'at_campaign', 'at_campaign_type', 'at_bbc_team',
                  'at_format', 'at_link_id', 'at_link_origin', 'at_link_type',
-                 'at_ptr_name', 'at_ptr_type'],
+                 'at_ptr_name', 'at_ptr_type',
+                 // BBC Live Page's "pinned post" feature and an internal
+                 // link tracker on bbc.co.uk
+                 'pinned_post_asset_id', 'pinned_post_locator',
+                 'pinned_post_type', 'intlink_from_url', 'src_origin'],
         patterns: ['^at_[a-z_]+$'],
       },
       {

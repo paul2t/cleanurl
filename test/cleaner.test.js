@@ -86,6 +86,26 @@ url('unknown trk_* variant caught by pattern',
   'https://example.com/a?trk_new_thing=1&trk=keep',
   'https://example.com/a?trk=keep');
 
+url('otm_* campaign family, mc_tc and Eloqua recipient ids',
+  'https://shop.example/p?otm_source=x&otm_medium=y&otm_campaign=z&mc_tc=1&recipientId=2&elqTrackId=3&elqTrack=4&utm_userid=5&utm_mailing=6&_epik=7&id=8',
+  'https://shop.example/p?id=8');
+
+url('AppsFlyer attribution fields, deep-link destinations kept',
+  'https://app.example/x?af_ad=1&af_ad_id=2&af_adset=3&af_channel=4&af_sub1=5&af_sub5=6&af_c_id=7&af_dp=myapp%3A%2F%2Fhome&af_web_dp=https%3A%2F%2Fexample.com&id=9',
+  'https://app.example/x?af_dp=myapp%3A%2F%2Fhome&af_web_dp=https%3A%2F%2Fexample.com&id=9');
+
+url('Bing/Microsoft Ads ValueTrack macros on the advertiser\'s own page',
+  'https://shop.example/p?hvadid=1&hvbmt=bb&hvdev=c&hvlocint=&hvlocphy=2&hvnetw=o&hvqmt=e&hvtargid=kwd-3&id=4',
+  'https://shop.example/p?id=4');
+
+url('comScore ns_* family, a third-party vendor rather than BBC-specific',
+  'https://example.com/a?ns_source=x&ns_mchannel=y&ns_campaign=z&ns_linkname=w&ns_fee=0&id=1',
+  'https://example.com/a?id=1');
+
+url('Salesforce Marketing Cloud sfmc_* prefix',
+  'https://shop.example/p?sfmc_id=1&sfmc_activityid=2&id=3',
+  'https://shop.example/p?id=3');
+
 url('encoding of surviving params is preserved byte for byte',
   'https://example.com/?q=a%20b%2Bc&utm_source=x&r=1+2',
   'https://example.com/?q=a%20b%2Bc&r=1+2');
@@ -199,6 +219,10 @@ url('reddit bot-check names are left alone elsewhere',
 url('facebook mibextid',
   'https://www.facebook.com/photo?fbid=123&mibextid=abcdef&__tn__=EH',
   'https://www.facebook.com/photo?fbid=123');
+
+url('BBC pinned post and internal link tracking',
+  'https://www.bbc.co.uk/news/live/world-123?pinned_post_asset_id=1&pinned_post_locator=urn:1&pinned_post_type=share&intlink_from_url=x&src_origin=y&page=2',
+  'https://www.bbc.co.uk/news/live/world-123?page=2');
 
 url('amazon /ref= path segment and query noise',
   'https://www.amazon.com/Some-Product/dp/B0ABCDEFGH/ref=sr_1_3?qid=1700000000&sr=8-3&keywords=thing',
