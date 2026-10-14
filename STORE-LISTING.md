@@ -46,45 +46,37 @@ The number of websites (76 in 1.0.10) is counted by hand from the `hosts` in `sr
 ```
 CleanURL removes tracking parameters and share identifiers from the links you open and the links you copy.
 
-A link from a share button, a newsletter or an ad usually carries more than the address of the page. "utm_source" and "utm_campaign" record which campaign sent you. "gclid", "fbclid" and "msclkid" tie your visit to an ad click. The share identifiers that video, music and social apps add to their links record who shared the link with you. None of it is needed to open the page.
+A link from a share button, a newsletter or an ad usually carries more than the address of the page: campaign tags, ad click IDs, and the share identifiers that video, music and social apps add. None of it is needed to open the page.
 
 WHAT IT REMOVES
 
-Over 750 different tracking parameters.
-
-More than 300 of them are removed on every website: campaign tags (utm_* and similar), ad click identifiers (gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid and more), and the tags that email marketing and analytics tools add to links. Wildcards catch new variants of the common families.
-
-More than 400 are share and tracking identifiers specific to more than 75 popular websites: video, music, social, shopping, news, travel and search sites, on their regional domains too.
-
-Redirect links from more than 30 services are unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour.
-
-Affiliate tags are deliberately left alone. They pay whoever shared the link, so removing them is your decision rather than a default. There is a switch if you want it, which also unwraps affiliate network links.
-
-So is anything a site needs to work. Sign-in and session parameters such as code, state, token and redirect_uri, and ordinary ones like q, v, id and page, are never touched.
+• Over 750 tracking parameters in total.
+• More than 300 removed on every website: campaign tags (utm_* and similar), ad click identifiers (gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid and more), and the tags email marketing and analytics tools add. Wildcards catch new variants of the common families.
+• More than 400 are share and tracking identifiers specific to over 75 popular websites - video, music, social, shopping, news, travel and search - on their regional domains too.
+• Redirect links from more than 30 services, unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour.
+• Affiliate tags are left alone by default - they pay whoever shared the link - with a switch if you want to remove them too, which also unwraps affiliate network links.
+• Anything a site needs to work, such as sign-in and session parameters (code, state, token, redirect_uri) and ordinary ones (q, v, id, page), is never touched.
 
 WHAT IT DOES
 
-Cleans links before they load. The rewrite happens on the request itself, so the tracking parameters never reach the site, and never appear in your address bar or your history.
-
-Cleans links when you copy them. Share panel "Copy link" buttons, Ctrl+C over a selected link, a page's own copy button, and dragging a link all produce a clean URL.
-
-Adds "Copy clean link" to the right-click menu, for a link or for the page you are on.
-
-Cleans the clipboard on demand. One button in the popup rewrites a link you have already copied, which covers links copied in another browser or app, or with Chrome's own "Copy link address", which an extension cannot intercept. The first time you press it, Chrome asks for permission to read the clipboard. It is read only when you press the button.
+• Cleans links before they load, on the request itself, so tracking parameters never reach the site and never appear in your address bar or history.
+• Cleans links when you copy them: share panel "Copy link" buttons, Ctrl+C over a selected link, a page's own copy button, or dragging a link.
+• Adds "Copy clean link" to the right-click menu, for a link or for the page you are on.
+• Cleans the clipboard on demand. One popup button rewrites a link you've already copied - covering links copied in another browser or app, or with Chrome's own "Copy link address", which an extension cannot intercept. Chrome asks for clipboard permission the first time, and it is read only when you press the button.
 
 SETTINGS
 
-Switch any of the cleaning passes off on its own. Leave chosen sites alone entirely, with a one-click toggle in the popup. Add your own parameters to remove, with * wildcards. Keep a parameter that a site turns out to need.
+Switch any cleaning pass off on its own, leave chosen sites alone with a one-click toggle, add your own parameters with * wildcards, or keep a parameter a site turns out to need.
 
 WHAT IT DOES NOT DO
 
-This is not an ad blocker or an anti-tracking suite. It does not block requests, scripts, cookies or fingerprinting, and it will not stop a site knowing you visited. It edits URLs, and that is all it does.
+Not an ad blocker or an anti-tracking suite. It does not block requests, scripts, cookies or fingerprinting, and it will not stop a site knowing you visited. It edits URLs, and that is all it does.
 
 PRIVACY
 
-No data is collected. The extension makes no network request of any kind, contacts no server, and contains no analytics. The list of parameters it removes is a plain file inside the extension, not something fetched or updated remotely. The only things stored are your settings and two counters, and they stay on your device.
+No data is collected. No network requests of any kind, no server contacted, no analytics. The parameter list is a plain file inside the extension, not fetched or updated remotely. Only your settings and two counters are stored, and they stay on your device.
 
-It asks for access to all sites because tracking parameters turn up on links to any domain, including small and personal ones, and because a URL can only be rewritten before it loads if the extension has access to it.
+It asks for access to all sites because tracking parameters turn up on links to any domain, including small and personal ones, and a URL can only be rewritten before it loads if the extension has access to it.
 
 CleanURL is open source under the MIT license.
 ```
