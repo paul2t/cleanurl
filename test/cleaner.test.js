@@ -224,6 +224,10 @@ url('BBC pinned post and internal link tracking',
   'https://www.bbc.co.uk/news/live/world-123?pinned_post_asset_id=1&pinned_post_locator=urn:1&pinned_post_type=share&intlink_from_url=x&src_origin=y&page=2',
   'https://www.bbc.co.uk/news/live/world-123?page=2');
 
+url('ebay click analytics blob',
+  'https://www.ebay.com/itm/123?sojTags=bu:bu&_trksid=p1&hash=item1:g',
+  'https://www.ebay.com/itm/123');
+
 url('amazon /ref= path segment and query noise',
   'https://www.amazon.com/Some-Product/dp/B0ABCDEFGH/ref=sr_1_3?qid=1700000000&sr=8-3&keywords=thing',
   'https://www.amazon.com/Some-Product/dp/B0ABCDEFGH?keywords=thing');
@@ -318,8 +322,8 @@ url('affiliate tag removed when opted in',
       'https://shop.example/item?affiliate_id=a&afid=b&click_id=c&referral=d&zanpid=e',
       'https://shop.example/item'],
     ['eBay Partner Network',
-      'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001&_trksid=p1',
-      'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001',
+      'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001&mkgroupid=2&mkpid=0&mktype=3&_trksid=p1',
+      'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001&mkgroupid=2&mkpid=0&mktype=3',
       'https://www.ebay.com/itm/123'],
     ['Booking.com affiliate id',
       'https://www.booking.com/hotel/fr/x.html?aid=304142&label=gen173&srpvid=1',

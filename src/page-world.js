@@ -329,8 +329,10 @@
                 'ebay.es', 'ebay.ca', 'ebay.com.au'],
         dnrDomains: ['ebay.com', 'ebay.co.uk', 'ebay.de', 'ebay.fr', 'ebay.it',
                      'ebay.es', 'ebay.ca', 'ebay.com.au'],
-        params: ['_trkparms', '_trksid', '_from', 'hash', 'amdata'],
-        affiliate: ['mkevt', 'mkcid', 'mkrid', 'campid', 'customid', 'toolid'],
+        // sojTags is eBay's own click-analytics blob, not a partner credit
+        params: ['_trkparms', '_trksid', '_from', 'hash', 'amdata', 'sojTags'],
+        affiliate: ['mkevt', 'mkcid', 'mkrid', 'campid', 'customid', 'toolid',
+                    'mkgroupid', 'mkpid', 'mktype'],
       },
       {
         name: 'AliExpress / Taobao',
