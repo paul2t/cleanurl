@@ -224,6 +224,10 @@ url('BBC pinned post and internal link tracking',
   'https://www.bbc.co.uk/news/live/world-123?pinned_post_asset_id=1&pinned_post_locator=urn:1&pinned_post_type=share&intlink_from_url=x&src_origin=y&page=2',
   'https://www.bbc.co.uk/news/live/world-123?page=2');
 
+url('walmart athena/mpid noise and a Google Shopping referral',
+  'https://www.walmart.com/ip/Thing/123?athbdg=XX&mpid=1&wl13=abc&wmlspartner=wlpa&selectedSellerId=0&veh=sem&cn=x&color=red',
+  'https://www.walmart.com/ip/Thing/123?color=red');
+
 url('ebay click analytics blob',
   'https://www.ebay.com/itm/123?sojTags=bu:bu&_trksid=p1&hash=item1:g',
   'https://www.ebay.com/itm/123');

@@ -516,8 +516,13 @@
         name: 'Walmart / Best Buy',
         hosts: ['walmart.com', 'bestbuy.com'],
         dnrDomains: ['walmart.com', 'bestbuy.com'],
+        // wl10-13, wmlspartner, selectedSellerId and veh ride along on a
+        // Google Shopping referral; TinyTools tested that a product keeps
+        // its colour, size and price once its whole query is stripped
         params: ['athbdg', 'athcpid', 'athpgid', 'athznid', 'athieid',
-                 'athstid', 'athguid', 'athancid', 'athena', 'mpid'],
+                 'athstid', 'athguid', 'athancid', 'athena', 'mpid',
+                 'wl10', 'wl11', 'wl12', 'wl13', 'wmlspartner',
+                 'selectedSellerId', 'veh', 'cn'],
         affiliate: ['u1', 'acampID'],
       },
       {
