@@ -106,6 +106,47 @@ url('Salesforce Marketing Cloud sfmc_* prefix',
   'https://shop.example/p?sfmc_id=1&sfmc_activityid=2&id=3',
   'https://shop.example/p?id=3');
 
+url('Adjust attribution fields, both spellings',
+  'https://app.example/x?adjust_campaign=1&adjust_tracker=2&adj_campaign=3&adj_label=4&id=5',
+  'https://app.example/x?id=5');
+
+url('AppsFlyer af_xp/is_retargeting and Google Play/Shopping ids',
+  'https://shop.example/p?af_xp=1&is_retargeting=true&gps_adid=2&feeditemid=3&targetid=4&id=5',
+  'https://shop.example/p?id=5');
+
+url('Eloqua, Ebis, Mindbox and comScore-adjacent campaign families',
+  'https://shop.example/p?elq=1&elqaid=2&elqat=3&elqCampaignId=4&elqak=5&ebisAdID=6&ebisOther1=7' +
+  '&mindbox-click-id=8&mindbox-message-key=9&int_source=a&int_medium=b&int_campaign=c&dpg_source=d' +
+  '&sc_cid=e&id=f',
+  'https://shop.example/p?id=f');
+
+url('Yahoo Japan, LINE ads, MyTracker and misc regional ad vendors',
+  'https://shop.example/p?yj_r=1&line_uid=2&_ly_c=3&_ly_r=4&ldtag_cl=5&lt_r=6&srclt=7&cm_mmc=8' +
+  '&mt_click_id=9&mt_network=a&uzcid=b&vsm_cid=c&vsm_type=d&winflncrtag=e&x-clickref=f&tgclid=g' +
+  '&adsterra_clid=h&bance_xuid=i&famad_xuid=j&bsft_clkid=k&analytics_trace_id=l&asgtbndr=m&janet=n' +
+  '&loclid=o&emcs_t=p&eml-name=q&at_link=r&usqp=s&Tcsack=t&nx_source=u&cstrackid=v&cx_click=w' +
+  '&tw_medium=x&gci=y&btag=z&recommended_by=aa&recommended_code=bb&id=cc',
+  'https://shop.example/p?id=cc');
+
+url('Matomo full-word siblings and pk_keyword',
+  'https://example.com/a?matomo_source=1&matomo_medium=2&matomo_content=3&matomo_cid=4&matomo_group=5' +
+  '&matomo_placement=6&pk_keyword=7&id=8',
+  'https://example.com/a?id=8');
+
+url('generic ad/affiliate click ids added from AdGuard and tickhq',
+  'https://shop.example/p?external_click_id=1&unicorn_click_id=2&iclid=3&erid=4&idealoid=5' +
+  '&_zucks_suid=6&ymid=7&ym_tracking_id=8&user_email_address=9&spot_im_redirect_source=a&adfrom=b&id=c',
+  'https://shop.example/p?id=c');
+
+{
+  const affInput = 'https://shop.example/p?admitad_uid=1&cjdata=2&ir_adid=3&ir_campaignid=4' +
+    '&ir_partnerid=5&tduid=6&maf=7&id=8';
+  url('affiliate siblings from AdGuard and tickhq: kept by default', affInput,
+    'https://shop.example/p?admitad_uid=1&cjdata=2&ir_adid=3&ir_campaignid=4&ir_partnerid=5&tduid=6&maf=7&id=8');
+  url('affiliate siblings from AdGuard and tickhq: removed when opted in', affInput,
+    'https://shop.example/p?id=8', { removeAffiliate: true });
+}
+
 url('encoding of surviving params is preserved byte for byte',
   'https://example.com/?q=a%20b%2Bc&utm_source=x&r=1+2',
   'https://example.com/?q=a%20b%2Bc&r=1+2');

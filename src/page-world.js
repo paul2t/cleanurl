@@ -179,6 +179,78 @@
       // comScore Digital Analytix, seen on BBC and other news sites but a
       // third-party vendor rather than anything BBC-specific
       'ns_source', 'ns_mchannel', 'ns_campaign', 'ns_linkname', 'ns_fee',
+
+      // From AdGuard's URL Tracking Protection filter and the @tickhq/clean-url
+      // and @inframanufaktur/clean-urls npm packages (see docs/sources.md).
+      //
+      // Adjust: both spellings its partners actually use. adj_t is excluded
+      // on adj.st and *.go.link, where it is the redirect's own payload - a
+      // nuance only AdGuard's domain exceptions capture; everywhere else it
+      // is safe.
+      'adjust_adgroup', 'adjust_campaign', 'adjust_creative',
+      'adjust_referrer', 'adjust_tracker', 'adjust_tracker_limit',
+      'adj_campaign', 'adj_creative', 'adj_label', 'adj_t',
+      'adj_tracker_limit',
+      // AppsFlyer siblings of the af_* family above. af_force_deeplink is
+      // deliberately absent: it controls deep-link behaviour, like af_dp.
+      'af_xp', 'is_retargeting',
+      // Google Play Services advertising id, Google Ads Shopping feed ids
+      'gps_adid', 'feeditemid', 'targetid',
+      'external_click_id', 'unicorn_click_id', 'iclid',
+      'erid',          // Russian ad-transparency identifier
+      'idealoid',      // Idealo
+      '_zucks_suid',   // Zucks
+      'mindbox-click-id', 'mindbox-message-key', // Mindbox CRM
+      'ebisAdID', 'ebisOther1', 'ebisOther2', 'ebisOther3', 'ebisOther4',
+      'ebisOther5',    // Ebis (Japan)
+      // Oracle Eloqua, siblings of recipientId/elqTrackId/elqTrack above
+      'elq', 'elqaid', 'elqat', 'elqCampaignId', 'elqak',
+      // A fourth campaign-tag family alongside utm_/itm_/stm_/otm_
+      'int_campaign', 'int_content', 'int_medium', 'int_source', 'int_term',
+      'int_cmp_creative', 'int_cmp_id', 'int_cmp_name',
+      'dpg_campaign', 'dpg_content', 'dpg_medium', 'dpg_source',
+      'sc_cid',        // Adobe, beside the sc_* family above
+      'spot_im_redirect_source', // Spot.IM
+      'user_email_address',
+      'ymid', 'ym_tracking_id', // Yandex Metrica, beside yclid/ysclid
+      // Yahoo Japan and LINE ads (ads-help.yahoo-net.jp, help.linebiz.com)
+      'yj_r', 'line_uid', '_ly_c', '_ly_r', 'ldtag_cl', 'lt_r', 'srclt',
+      'cm_mmc', 'cm_cr', 'cm_me',
+      // MyTracker (mobile attribution)
+      'mt_adset', 'mt_campaign', 'mt_click_id', 'mt_creative', 'mt_link_id',
+      'mt_medium', 'mt_network', 'mt_sub1', 'mt_sub2', 'mt_sub3', 'mt_sub4',
+      'mt_sub5',
+      'uzcid', 'beyond_uzcvid', 'beyond_uzmcvid',
+      'vs_campaign_id', 'vsm_cid', 'vsm_pid', 'vsm_type', // Visumo
+      'winflncrtag',   // Winfluencer
+      // Confirmed in real links on avira.com, malwarebytes.com and others
+      'x-clickref', 'x-source', 'x-a-medium',
+      'tgclid',        // Telegram Ads
+      'adsterra_clid', 'adsterra_placement_id', // Adsterra
+      'aiad_clid',
+      'bance_xuid',    // Bance
+      'famad_xuid',    // Famad
+      // Blueshift email-subscription tracking
+      'bsft_clkid', 'bsft_eid', 'bsft_mid', 'bsft_uid', 'bsft_aaid', 'bsft_ek',
+      'analytics_context', 'analytics_trace_id',
+      'asgtbndr', 'janet',
+      'loclid',        // LOGLY
+      'emcs_t', 'ems_dl', // Emarsys
+      'eml-name', 'eml-mediaplan', 'eml-publisher',
+      'at_link',       // bare form of the at_* family above
+      'usqp',          // Google AMP analytics
+      'Tcsack',        // TCS
+      'nx_source', 'oprtrack', 'rtkcid', 'cstrackid', // ChannelSight (cstrackid)
+      'cx_click', 'cx_recsOrder', 'cx_recsWidget', // Cxense
+      'tw_medium', 'tw_profile_id', // Triple Whale, beside tw_source above
+      'gci',           // GLAMI click id
+      'btag',          // affiliate tag seen on gambling/casino links
+      'adfrom',
+      'recommended_by', 'recommended_code', // personaclick.com
+
+      // Matomo/Piwik siblings of the matomo_campaign/matomo_kwd/pk_kwd above
+      'matomo_source', 'matomo_medium', 'matomo_content', 'matomo_cid',
+      'matomo_group', 'matomo_placement', 'pk_keyword',
     ],
 
     /* Regexes (as strings, matched case-insensitively) applied by the content
@@ -213,6 +285,12 @@
       'affiliate_id', 'afid', 'click_id', 'referral',
       // Zanox, now part of Awin
       'zanpid',
+      // From AdGuard's filter and @tickhq/clean-url (see docs/sources.md)
+      'admitad_uid',   // Admitad
+      'cjdata',        // CJ, beside cjevent above
+      'ir_adid', 'ir_campaignid', 'ir_partnerid', // Impact, beside irclickid/irgwc
+      'tduid',         // Tradedoubler
+      'maf',           // moshimo affiliate
     ],
 
     /* ------------------------------------------------------------------ *
