@@ -85,9 +85,9 @@ in the path (Amazon's `/ref=…` segments, and share ids after a stray `&` in a
 
 ## What it removes
 
-Roughly 280 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
+Roughly 320 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
 `mc_cid`, `mkt_tok`, `yclid`, `igshid`, Matomo, HubSpot, Klaviyo, Bronto,
-Webtrends, Branch.io, Triple Whale, Northbeam…) plus over 400 site-specific
+Webtrends, Branch.io, Triple Whale, Northbeam…) plus over 450 site-specific
 share and tracking identifiers for about 40 sites and site groups: YouTube
 `si`/`pp`/`is`, Instagram and Threads `igsh`/`igsi`/`stkn`/`psln`, X
 `s`/`t`, TikTok's `share_*` set, Reddit `share_id`, Spotify `si`/`sci`,
@@ -166,6 +166,9 @@ are good places to look for candidates; several entries here were picked from
 them.
 Check each name before adding it: some of theirs are broad regexes, and a few
 strip parameters a page needs, such as gift-article tokens or product variants.
+[`docs/sources.md`](docs/sources.md) tracks which of these have already been
+compared against rules.js and what each contributed, so a later pass can
+re-diff instead of starting over.
 
 ## Tests
 
