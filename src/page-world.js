@@ -129,6 +129,16 @@
       // Seznam's recommendation widget (Czech news sites)
       'dop_ab_variant', 'dop_source_zone_name', 'dop_req_id', 'dop_id',
 
+      // From the comparison with laststance/clean-url's list.
+      // utm_nooverride and utm_ad already match the ^utm_ pattern, but that
+      // only runs in the content script; spelled out here, the network rules
+      // remove them before the request leaves.
+      'utm_nooverride', 'utm_ad',
+      // Google Ads keyword reporting, landing on the advertiser's page
+      'matchtype', 'adgroup', 'adposition',
+      // TikTok referral, ConvertKit subscriber, beehiiv link, ShareThis hash
+      'tiktok_r', 'ck_subscriber_id', '_bhlid', 'sthash',
+
       // From the comparison with anti-racist/TinyTools_GetCleanURL.
       // msockid is Bing's and Edge's MUID cookie copied into the link;
       // ga_cid is the Analytics client id, beside the ga_* family above.
@@ -165,6 +175,9 @@
       'subid', 'sub_id', 'utm_affiliate',
       // Affiliate networks' click ids: CJ, Awin, ShareASale, Impact
       'cjevent', 'awc', 'sscid', 'irclickid', 'irgwc',
+      // Generic referral and affiliate click ids. They credit a sharer, so
+      // they belong here rather than in globalParams.
+      'affiliate_id', 'afid', 'click_id', 'referral',
       // Zanox, now part of Awin
       'zanpid',
     ],

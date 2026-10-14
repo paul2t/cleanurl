@@ -66,6 +66,14 @@ url('Merchant Center promo codes are kept (they give the shopper a discount)',
   'https://shop.example/p?gPromoCode=SAVE10&utm_source=google',
   'https://shop.example/p?gPromoCode=SAVE10');
 
+url('ad reporting, newsletter and ShareThis ids on any site',
+  'https://shop.example/p?matchtype=e&adgroup=1&adposition=2&tiktok_r=3&ck_subscriber_id=4&_bhlid=5&sthash=6&utm_nooverride=1&utm_ad=7&size=M',
+  'https://shop.example/p?size=M');
+
+url('generic names a site may need are kept everywhere',
+  'https://example.com/a?ref=nav&referrer=x&source=menu&campaign=flood-relief&trk=1',
+  'https://example.com/a?ref=nav&referrer=x&source=menu&campaign=flood-relief&trk=1');
+
 url('hubspot email, cookies, ads and social sharing',
   'https://blog.example/post?_hsenc=p2ANq&_hsmi=12&__hstc=1.2&__hssc=3&__hsfp=4&hsa_cam=5&hsa_new_thing=6&hss_channel=tw-613456&page=2',
   'https://blog.example/post?page=2');
@@ -277,9 +285,9 @@ url('affiliate tag removed when opted in',
       'https://shop.example/item?cjevent=abc&awc=1_2&sscid=x&irclickid=y&irgwc=1&utm_source=z',
       'https://shop.example/item?cjevent=abc&awc=1_2&sscid=x&irclickid=y&irgwc=1',
       'https://shop.example/item'],
-    ['Zanox click id',
-      'https://shop.example/item?zanpid=e&utm_source=z',
-      'https://shop.example/item?zanpid=e',
+    ['generic referral and affiliate ids',
+      'https://shop.example/item?affiliate_id=a&afid=b&click_id=c&referral=d&zanpid=e&utm_source=z',
+      'https://shop.example/item?affiliate_id=a&afid=b&click_id=c&referral=d&zanpid=e',
       'https://shop.example/item'],
     ['eBay Partner Network',
       'https://www.ebay.com/itm/123?mkevt=1&mkcid=1&mkrid=711-1&campid=5338&customid=a&toolid=10001&_trksid=p1',

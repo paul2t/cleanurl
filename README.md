@@ -85,7 +85,7 @@ in the path (Amazon's `/ref=…` segments, and share ids after a stray `&` in a
 
 ## What it removes
 
-Roughly 270 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
+Roughly 280 parameters everywhere (`utm_*`, `gclid`, `fbclid`, `msclkid`,
 `mc_cid`, `mkt_tok`, `yclid`, `igshid`, Matomo, HubSpot, Klaviyo, Bronto,
 Webtrends, Branch.io, Triple Whale, Northbeam…) plus over 400 site-specific
 share and tracking identifiers for about 40 sites and site groups: YouTube
@@ -160,6 +160,7 @@ ccTLDs), `patterns` (regex parameter names, content-script only) and
 The [ClearURLs rules](https://docs.clearurls.xyz/specs/rules) (LGPL-3.0), the
 [tracking query params registry](https://github.com/mpchadwick/tracking-query-params-registry)
 (Unlicense) and other cleaners such as
+[laststance/clean-url](https://github.com/laststance/clean-url) and
 [TinyTools_GetCleanURL](https://github.com/anti-racist/TinyTools_GetCleanURL)
 are good places to look for candidates; several entries here were picked from
 them.
