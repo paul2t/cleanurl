@@ -757,10 +757,13 @@
       // Affiliate networks
       { hosts: ['shareasale.com'], params: ['urllink', 'url'], affiliate: true },
       { hosts: ['click.linksynergy.com'], params: ['murl', 'RD_PARM1'], affiliate: true },
-      { hosts: ['awin1.com'], params: ['ued'], affiliate: true },
+      // p is awclick.php's parameter; ued is cread.php's
+      { hosts: ['awin1.com'], paths: ['/cread.php', '/awclick.php'],
+        params: ['ued', 'p'], affiliate: true },
       { hosts: ['go.skimresources.com'], params: ['url'], affiliate: true },
       { hosts: ['redirect.viglink.com'], params: ['u'], affiliate: true },
-      { hosts: ['clk.tradedoubler.com'], params: ['url', '_td_deeplink'], affiliate: true },
+      // tradedoubler.com covers every subdomain already: clk. and redir. too
+      { hosts: ['tradedoubler.com'], params: ['url', '_td_deeplink'], affiliate: true },
       // Commission Junction's click domains
       { hosts: ['dpbolvw.net', 'anrdoezrs.net', 'jdoqocy.com', 'kqzyfj.com',
                 'tkqlhce.com'], params: ['url'], affiliate: true },
@@ -773,8 +776,52 @@
       // A commerce-content redirector used by many media sites' "buy" links
       { hosts: ['redirectingat.com'], params: ['url'], affiliate: true },
       { hosts: ['ojrq.net'], paths: ['/p/'], params: ['return'], affiliate: true },
-      { hosts: ['rd.connexity.net'], paths: ['/rd'], params: ['t'], affiliate: true },
+      // bizrate.com is Connexity's older brand, same redirect shape
+      { hosts: ['rd.connexity.net', 'rd.bizrate.com'], paths: ['/rd'],
+        params: ['t'], affiliate: true },
       { hosts: ['t.cfjump.com'], params: ['Url'], affiliate: true },
+      // From Brave's Debouncer list and the linkcl npm package (see
+      // docs/sources.md). Several of Brave's entries need base64-decoding
+      // or path-regex extraction this project's redirect unwrapper does not
+      // support (ActiveCampaign's lt.acemlnN.com family, ouo.today,
+      // click.pstmrk.it, awstrack.me, AMP viewer paths); left for later.
+      { hosts: ['shareasale-analytics.com'], params: ['urllink'], affiliate: true },
+      { hosts: ['c.pepperjamnetwork.com'], params: ['url'], affiliate: true },
+      { hosts: ['avantlink.com'], params: ['url'], affiliate: true },
+      // Partnerize, formerly Performance Horizon
+      { hosts: ['pntrac.com', 'pjtra.com', 'pntrs.com', 'gopjn.com'],
+        params: ['url'], affiliate: true },
+      { hosts: ['clixgalore.com'], params: ['AffDirectURL', 'LP'], affiliate: true },
+      { hosts: ['ck.jp.ap.valuecommerce.com', 'atrrd.valuecommerce.com',
+                'valuecommerce.ne.jp'], params: ['vc_url'], affiliate: true },
+      { hosts: ['target.georiot.com'], params: ['GR_URL'], affiliate: true },
+      // Impact.com's own and its "goto" retailer-branded redirect domains -
+      // a large, rotating pool, all sharing the same param and path shape
+      { hosts: ['pxf.io', 'sjv.io', 'pjatr.com', 'goto.target.com',
+                'goto.walmart.com', 'goto.carters.com', 'c9ftyd.net', 'iyhh.net',
+                'glg9ob.net', 'evyy.net', 'uikc.net', 'ztk5.net', 'rg35.net',
+                '8ocm68.net', 'xovt.net', 'i114863.net', '58dp.net', '7tiv.net',
+                '5ad6.net', 'q77h.net', '3uu8.net', 'uxsi.net', 'njih.net',
+                'pdy5.net', 'igs4ds.net', 'mvvx.net', 'xwrk.net', 'fziv.net',
+                'lvuv.net', 'xibx.net', 'attfm2.net', 'tkjf.net', 'a9yw.net',
+                'pfm4.net', 'i254217.net', 'i182465.net', 'vthnbx.net',
+                'ryvx.net', '7eer.net', 'microsoft.msafflnk.net', 'i312864.net',
+                'tmfhgn.net', 'obak77.net', 'yvzx.net', 'ioym.net', 'ntaf.net',
+                'zlwlj8.net', 'uvwgb9.net', '3anx.net', 'rrmo.net', 'i308314.net',
+                'uqhv.net', 'vzew.net', 'qflm.net', 'rfvk.net', 'am3t9s.net'],
+        paths: ['/c/'], params: ['u'], affiliate: true },
+
+      // Non-affiliate redirects: nobody's commission to unwrap, just noise.
+      { hosts: ['search.app'], params: ['link'] },
+      { hosts: ['page.link'], params: ['ofl'] }, // Firebase Dynamic Links
+      { hosts: ['c212.net'], params: ['u'] }, // PR Newswire
+      { hosts: ['recruitics.com'], paths: ['/redirect'], params: ['rx_url'] },
+      { hosts: ['t.mailpgn.com'], params: ['fl'] },
+      { hosts: ['demdex.net'], params: ['d_rd'] }, // Adobe Audience Manager
+      { hosts: ['d.agkn.com'], params: ['l1'] }, // Neustar/Agkn
+      { hosts: ['ad.atdmt.com'], params: ['h'] }, // Microsoft Atlas
+      { hosts: ['getprice.com.au'], params: ['link'] },
+      { hosts: ['mailchimp.com'], paths: ['/mctx/clicks'], params: ['url'] },
     ],
   };
 

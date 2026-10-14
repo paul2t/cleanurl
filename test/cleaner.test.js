@@ -507,8 +507,46 @@ url('vk away.php on the bare domain',
   const ojrq = 'https://www.ojrq.net/p/?c=1&return=https%3A%2F%2Fshop.example%2F';
   url('Impact Radius ojrq.net redirect unwrapped on opt-in', ojrq,
     'https://shop.example/', { removeAffiliate: true });
+
+  const awinAwclick = 'https://www.awin1.com/awclick.php?awinmid=1&p=' +
+    'https%3A%2F%2Fshop.example%2F';
+  url('Awin awclick.php (p=) unwrapped on opt-in', awinAwclick,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const tradedoubler = 'https://redir.tradedoubler.com/?td1=1&_td_deeplink=' +
+    'https%3A%2F%2Fshop.example%2F';
+  url('Tradedoubler redir subdomain unwrapped on opt-in', tradedoubler,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const bizrate = 'https://rd.bizrate.com/rd2?t=https%3A%2F%2Fshop.example%2F';
+  url('Bizrate (Connexity\'s older brand) unwrapped on opt-in', bizrate,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const valuecommerce = 'https://ck.jp.ap.valuecommerce.com/servlet/referral?' +
+    'sid=1&vc_url=https%3A%2F%2Fshop.example%2F';
+  url('ValueCommerce redirect unwrapped on opt-in', valuecommerce,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const impactPool = 'https://www.i182465.net/c/123?param=1&u=' +
+    'https%3A%2F%2Fshop.example%2F';
+  url('Impact.com pooled redirect domain unwrapped on opt-in', impactPool,
+    'https://shop.example/', { removeAffiliate: true });
+
+  const impactGoto = 'https://goto.target.com/c/1?u=https%3A%2F%2Fshop.example%2F';
+  url('Impact.com goto.target.com unwrapped on opt-in', impactGoto,
+    'https://shop.example/', { removeAffiliate: true });
+
   url('non-affiliate redirects still unwrap by default',
     'https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2F',
+    'https://example.com/');
+
+  const mailchimpClick = 'https://us1.mailchimp.com/mctx/clicks?url=' +
+    'https%3A%2F%2Fexample.com%2F&dc=1';
+  url('mailchimp click redirect unwraps by default', mailchimpClick,
+    'https://example.com/');
+
+  const pageLink = 'https://myapp.page.link/?ofl=https%3A%2F%2Fexample.com%2F';
+  url('Firebase Dynamic Links unwraps by default', pageLink,
     'https://example.com/');
 }
 
