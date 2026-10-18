@@ -26,7 +26,7 @@ const Settings = globalThis.CleanURLSettings;
  * pastes. Rewriting sub-resources buys little and breaks more. */
 const RESOURCE_TYPES = ['main_frame'];
 
-const PRIORITY = { allow: 100, redirector: 50, site: 2, global: 1 };
+const PRIORITY = { allow: 100, redirector: 50, keepOnlyAllow: 6, keepOnlyFirst: 5, keepOnlyLater: 4, keepOnlyDrop: 3, site: 2, global: 1 };
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -72,6 +72,43 @@ function dedupe(list) {
 
 function isDnrDomain(domain) {
   return /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(domain);
+}
+
+/*
+ * "Keep only these" for a site whose share ids change name with every share
+ * (Instagram's posts: dlrf, xtok, ... at random). removeParams can only name
+ * what to remove, so these rewrite the URL with regexSubstitution instead.
+ * RE2 has no lookahead, a rule that rewrites a URL into itself would redirect
+ * forever, and Chrome refuses a regex that compiles to more than 2KB - which
+ * one combined rule did, taking every rule down with it. So, four small ones:
+ *
+ *   - allow, highest: the query is exactly the kept parameter - nothing to do;
+ *   - keep-first / keep-later: the kept parameter with others - just it;
+ *   - drop: any other query - removed entirely.
+ *
+ * Each rewrite lands on a URL only the allow rule (or none) matches.
+ * Supports one kept parameter, which is all Instagram's posts need.
+ */
+function keepOnlyRules(site, domains, startId) {
+  const only = site.keepOnly;
+  const k = escapeRegExp(only.params[0]) + '=[^&#]*';
+  const hosts = (only.hosts || domains).map(escapeRegExp).join('|');
+  const base = '^(https?://(?:[^/?#]+\\.)?(?:' + hosts + ')(?:' +
+    only.paths.map(escapeRegExp).join('|') + ')[^?#]*)\\?';
+  const rule = (offset, priority, regexFilter, substitution) => ({
+    id: startId + offset,
+    priority: priority,
+    action: substitution === null
+      ? { type: 'allow' }
+      : { type: 'redirect', redirect: { regexSubstitution: substitution } },
+    condition: { regexFilter: regexFilter, resourceTypes: RESOURCE_TYPES, requestMethods: ['get'] },
+  });
+  return [
+    rule(0, PRIORITY.keepOnlyAllow, base + k + '$', null),
+    rule(1, PRIORITY.keepOnlyFirst, base + '(' + k + ')&.*$', '\\1?\\2'),
+    rule(2, PRIORITY.keepOnlyLater, base + '[^#]*&(' + k + ')(?:&.*)?$', '\\1?\\2'),
+    rule(3, PRIORITY.keepOnlyDrop, base + '.*$', '\\1'),
+  ];
 }
 
 function redirectAction(params) {
@@ -132,6 +169,15 @@ function buildRules(settings) {
         urlFilter: '?',
       },
     });
+
+    // The user's "always keep" names cannot be expressed here; the address
+    // bar pass, which honours them, cleans those pages after load instead.
+    if (site.keepOnly && !settings.keepParams.length) {
+      for (const rule of keepOnlyRules(site, domains, id)) {
+        rules.push(rule);
+        id = rule.id + 1;
+      }
+    }
   }
 
   rules.push({
@@ -157,6 +203,24 @@ async function applyRules(rules) {
   });
 }
 
+/** Drops every regex rule this browser says it cannot compile. */
+async function withoutUnsupportedRegex(rules) {
+  const api = chrome.declarativeNetRequest;
+  if (!api.isRegexSupported) return rules.filter((rule) => !rule.condition.regexFilter);
+  const kept = [];
+  for (const rule of rules) {
+    if (rule.condition.regexFilter) {
+      const check = await api.isRegexSupported({ regex: rule.condition.regexFilter }).catch(() => null);
+      if (!check || !check.isSupported) {
+        console.warn('[CleanURL] dropping rule', rule.id, check && check.reason);
+        continue;
+      }
+    }
+    kept.push(rule);
+  }
+  return kept;
+}
+
 /** Drops the optional query-string pre-filter from every condition. */
 function withoutUrlFilter(rules) {
   return rules.map((rule) => {
@@ -172,13 +236,23 @@ function rebuildRules() {
   rebuildPromise = rebuildPromise.then(async () => {
     const settings = await Settings.load();
     const rules = buildRules(settings);
+    /*
+     * A single rejected rule would otherwise leave the browser with no rules
+     * at all, which fails silently and completely. So step back: without the
+     * pre-filter, then without any regex rule Chrome says it cannot compile
+     * (it refuses those over 2KB once compiled), so the name-based rules -
+     * nearly all of the cleaning - always get in.
+     */
     try {
       await applyRules(rules);
     } catch (error) {
-      // A single rejected condition would otherwise leave the browser with no
-      // rules at all, which fails silently and completely.
       console.warn('[CleanURL] rule set rejected, retrying without the pre-filter:', error);
-      await applyRules(withoutUrlFilter(rules));
+      try {
+        await applyRules(withoutUrlFilter(rules));
+      } catch (error2) {
+        console.warn('[CleanURL] still rejected, dropping unsupported regex rules:', error2);
+        await applyRules(await withoutUnsupportedRegex(withoutUrlFilter(rules)));
+      }
     }
   }).catch((error) => {
     console.error('[CleanURL] could not update rules:', error);

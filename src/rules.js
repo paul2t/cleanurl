@@ -304,6 +304,17 @@
         // base64 of a short random string: Instagram keeps renaming it.
         params: ['igsh', 'igshid', 'igsi', 'xmt', 'img_index_share', 'psln',
                  'stkn', 'xtok', 'cplk'],
+        /*
+         * Since late 2026 every share gets a fresh, random parameter name
+         * (dlrf, xtok, ...), so naming them cannot keep up. On a post's own
+         * page, keep only what does something and drop the rest. img_index
+         * opens a carousel at the right slide; the post is in the path.
+         */
+        keepOnly: {
+          hosts: ['instagram.com'],
+          paths: ['/p/', '/reel/', '/reels/', '/tv/'],
+          params: ['img_index'],
+        },
       },
       {
         name: 'X / Twitter',

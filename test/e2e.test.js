@@ -47,6 +47,15 @@ async function main() {
     const lastLog = () => browser.sw.eval(
       'chrome.storage.session.get("debugLog").then((s) => (s.debugLog || []).slice(-1)[0] || null)');
 
+    /*
+     * Every rule must actually be installed. Chrome rejects the whole set
+     * when one rule is refused - a regex over its 2KB compiled limit did
+     * that once - and only a real browser can tell.
+     */
+    const counts = await browser.sw.eval(`CleanURLSettings.load().then(async (s) => [buildRules(s).length,
+      (await chrome.declarativeNetRequest.getDynamicRules()).length])`);
+    eq('every generated network rule is installed', counts[1], counts[0]);
+
     /* ---- network rules, before the page loads ---------------------- */
     const opened = `${site}/a?id=7&utm_source=x&fbclid=abc`;
     const page = await browser.open(opened);

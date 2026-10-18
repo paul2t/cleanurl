@@ -641,7 +641,11 @@ for (const rule of rules) {
   ok(`rule ${rule.id}: only top level navigations`,
     rule.condition.resourceTypes.join() === 'main_frame');
 
-  if (rule.action.type === 'redirect') {
+  if (rule.action.type === 'redirect' && rule.action.redirect.regexSubstitution) {
+    // The keep-only rules rewrite by pattern rather than by name.
+    ok(`rule ${rule.id}: a regex rewrite has a regexFilter`, !!rule.condition.regexFilter);
+    eq(`rule ${rule.id}: GET only`, (rule.condition.requestMethods || []).join(), 'get');
+  } else if (rule.action.type === 'redirect') {
     const params = rule.action.redirect.transform.queryTransform.removeParams;
     ok(`rule ${rule.id}: removes something`, Array.isArray(params) && params.length > 0);
     ok(`rule ${rule.id}: all params are non-empty strings`,
@@ -681,7 +685,62 @@ for (const rule of rules) {
       !re.test('https://www.google.com/urlshortener?usg=x'));
   }
 
-  /* RE2 powers regexFilter and has no lookahead; keep the filters within it. */
+  /*
+ * Instagram's posts: keep only img_index, drop every other parameter, at the
+ * network level. Emulates how Chrome applies the rules - the matching rule of
+ * highest priority wins, a redirect is followed and matched again - and
+ * checks each kind of URL ends where it should, without a loop.
+ */
+{
+  const regexRules = rules.filter((r) => r.condition.regexFilter && r.priority >= 3 && r.priority <= 6);
+  ok('instagram keep-only rules are generated', regexRules.length === 4, String(regexRules.length));
+  const follow = (start) => {
+    let current = start;
+    for (let hops = 0; hops < 5; hops++) {
+      const hit = regexRules
+        .filter((r) => new RegExp(r.condition.regexFilter).test(current))
+        .sort((x, y) => y.priority - x.priority)[0];
+      if (!hit || hit.action.type === 'allow') return current;
+      const next = current.replace(new RegExp(hit.condition.regexFilter),
+        // DNR writes groups as \1; JavaScript's replace wants $1.
+        hit.action.redirect.regexSubstitution.replace(/\\(\d)/g, '$$$1'));
+      if (next === current) return 'LOOP at ' + current;
+      current = next;
+    }
+    return 'TOO MANY HOPS';
+  };
+  const cases = [
+    ['https://www.instagram.com/reel/DecMDHFjY4o/?dlrf=NTc4MTIwNjQ2YQ==', 'https://www.instagram.com/reel/DecMDHFjY4o/'],
+    ['https://www.instagram.com/p/Cx1y2z3/?xtok=a&img_index=3', 'https://www.instagram.com/p/Cx1y2z3/?img_index=3'],
+    ['https://www.instagram.com/p/Cx1y2z3/?img_index=3&xtok=a&b=c', 'https://www.instagram.com/p/Cx1y2z3/?img_index=3'],
+    ['https://www.instagram.com/p/Cx1y2z3/?img_index=3', 'https://www.instagram.com/p/Cx1y2z3/?img_index=3'],
+    ['https://instagram.com/tv/ABC/?a=1', 'https://instagram.com/tv/ABC/'],
+    ['https://www.instagram.com/accounts/login/?next=%2Freel%2Fx%2F', 'https://www.instagram.com/accounts/login/?next=%2Freel%2Fx%2F'],
+    ['https://www.instagram.com/someone/?hl=fr', 'https://www.instagram.com/someone/?hl=fr'],
+    ['https://notinstagram.com/p/x/?a=1', 'https://notinstagram.com/p/x/?a=1'],
+  ];
+  for (const [from, to] of cases) eq(`network keep-only: ${from}`, follow(from), to);
+
+  const custom = sandbox.buildRules(sandbox.CleanURLSettings.normalize({ keepParams: ['hl'] }));
+  ok('with a custom keep list, the network keep-only rules step aside',
+    !custom.some((r) => r.condition.regexFilter && r.priority >= 3 && r.priority <= 6));
+}
+
+/*
+ * If Chrome rejects the rule set, regex rules it cannot compile are dropped
+ * and the rest go in, rather than nothing at all.
+ */
+asyncTests.push((async () => {
+  sandbox.chrome.declarativeNetRequest.isRegexSupported = async ({ regex }) =>
+    ({ isSupported: !/img_index/.test(regex), reason: 'memoryLimitExceeded' });
+  const kept = await sandbox.withoutUnsupportedRegex(rules);
+  ok('an unsupported regex rule is dropped',
+    !kept.some((r) => /img_index/.test(r.condition.regexFilter || '')));
+  eq('and every other rule is kept', kept.length,
+    rules.filter((r) => !/img_index/.test(r.condition.regexFilter || '')).length);
+})().catch((error) => ok('fallback test ran', false, error.stack)));
+
+/* RE2 powers regexFilter and has no lookahead; keep the filters within it. */
   for (const rule of allows) {
     if (!rule.condition.regexFilter) continue;
     ok(`rule ${rule.id}: no lookahead in regexFilter`,

@@ -225,6 +225,26 @@ url('instagram cplk share id',
   'https://www.instagram.com/reel/DecMDHFjY4o/?cplk=MTk3dmdseWl2bWM3bg==',
   'https://www.instagram.com/reel/DecMDHFjY4o/');
 
+/* Instagram now names each share's id at random: on a post, only img_index stays. */
+url('instagram random share id names (dlrf)',
+  'https://www.instagram.com/reel/DecMDHFjY4o/?dlrf=NTc4MTIwNjQ2YQ==',
+  'https://www.instagram.com/reel/DecMDHFjY4o/');
+url('instagram random share id names (xtok)',
+  'https://www.instagram.com/reel/DecMDHFjY4o/?xtok=NTc4MTIwNjQ2YQ==',
+  'https://www.instagram.com/reel/DecMDHFjY4o/');
+url('instagram carousel slide is kept',
+  'https://www.instagram.com/p/Cx1y2z3/?qwzt=MWQx&img_index=3',
+  'https://www.instagram.com/p/Cx1y2z3/?img_index=3');
+url('instagram keep-only honours the keep list in settings',
+  'https://www.instagram.com/p/Cx1y2z3/?qwzt=MWQx&hl=fr',
+  'https://www.instagram.com/p/Cx1y2z3/?hl=fr', { keepParams: ['hl'] });
+url('instagram login keeps where it goes next',
+  'https://www.instagram.com/accounts/login/?next=%2Freel%2FDecMDHFjY4o%2F',
+  'https://www.instagram.com/accounts/login/?next=%2Freel%2FDecMDHFjY4o%2F');
+url('instagram profile pages keep the name-based rule',
+  'https://www.instagram.com/someone/?igsh=MWQx&hl=fr',
+  'https://www.instagram.com/someone/?hl=fr');
+
 url('stkn is left alone off instagram',
   'https://example.com/?stkn=abc',
   'https://example.com/?stkn=abc');

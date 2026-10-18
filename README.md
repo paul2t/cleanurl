@@ -154,8 +154,21 @@ new one:
 ```
 
 Site rules also accept `hostRe` (a regex, for things like Google's many
-ccTLDs), `patterns` (regex parameter names, content-script only) and
-`affiliate` (only removed when the user opts in).
+ccTLDs), `patterns` (regex parameter names, content-script only),
+`affiliate` (only removed when the user opts in) and `keepOnly`.
+
+`keepOnly` turns a site's rule around for some paths: remove every parameter
+except the few listed. It exists for Instagram, which since late 2026 gives
+each share's id a fresh random name (`dlrf`, `xtok`, …), so no list of names
+can keep up. On a post (`/p/`, `/reel/`, `/reels/`, `/tv/`) only `img_index`,
+the carousel slide, survives; the login page's `next=` and profile pages are
+untouched. At the network level it becomes four small regex rules, because
+`removeParams` can only name what to remove and Chrome refuses any regex over
+2KB once compiled. If Chrome ever rejects a rule, the background drops the
+regex rules it cannot compile and installs the rest, rather than nothing; the
+end-to-end tests check every generated rule is really installed. With custom
+**Parameters to always keep**, the network keep-only rules step aside and the
+address bar pass, which honours them, cleans those pages after load.
 
 The [ClearURLs rules](https://docs.clearurls.xyz/specs/rules) (LGPL-3.0),
 [AdGuard's URL Tracking Protection filter](https://github.com/AdguardTeam/FiltersRegistry)

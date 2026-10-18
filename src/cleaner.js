@@ -126,6 +126,24 @@
   }
 
   /** Builds `name => shouldRemove` for a given host. */
+  /*
+   * For a page of a site whose share ids change name with every share
+   * (Instagram's posts), a matcher that removes every parameter except the few
+   * the site lists as doing something - and except the user's own "always
+   * keep" names. Null anywhere else.
+   */
+  function keepOnlyMatcher(url, settings) {
+    for (const site of RULES.sites) {
+      const rule = site.keepOnly;
+      if (!rule || !ruleMatchesHost(rule.hosts ? rule : site, url.hostname)) continue;
+      if (!rule.paths.some((p) => url.pathname.startsWith(p))) continue;
+      const keep = new Set(rule.params.concat(settings.keepParams || [])
+        .map((n) => String(n).trim().toLowerCase()).filter(Boolean));
+      return (name) => !keep.has(String(name).toLowerCase());
+    }
+    return null;
+  }
+
   function buildMatcher(host, settings) {
     // A NUL separator cannot occur in a hostname or a settings key, so the
     // cache key is unambiguous. Written as an escape: a literal NUL byte in
@@ -304,7 +322,7 @@
      */
     if (isRedirector(url)) return result;
 
-    const matcher = buildMatcher(url.hostname, settings);
+    const matcher = keepOnlyMatcher(url, settings) || buildMatcher(url.hostname, settings);
     const removed = [];
 
     const query = filterQuery(url.search.slice(1), matcher, removed);
