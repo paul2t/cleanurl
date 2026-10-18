@@ -1,6 +1,6 @@
 {
   "name": "cleanurl",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "private": true,
   "license": "MIT",
   "engines": { "node": "^18 || >=20" },
