@@ -41,7 +41,7 @@ No site, app or brand names: the Chrome Web Store treats a list of them as keywo
 node -e "const R=require('./src/rules.js');const s=new Set(R.sites.flatMap(x=>x.params||[]));console.log(R.globalParams.length,'everywhere,',s.size,'site-specific,',new Set([...R.globalParams,...s].map(x=>x.toLowerCase())).size,'distinct,',R.redirects.length,'redirect services')"
 ```
 
-The number of websites (76 in 1.0.10) is counted by hand from the `hosts` in `src/rules.js`, one per service: regional domains and short-link domains do not count again.
+The number of websites (76 in 1.0.15, unchanged since 1.0.10) is counted by hand from the `hosts` in `src/rules.js`, one per service: regional domains and short-link domains do not count again.
 
 ```
 CleanURL removes tracking parameters and share identifiers from the links you open and the links you copy.
@@ -53,7 +53,8 @@ WHAT IT REMOVES
 • Over 900 tracking parameters in total.
 • More than 450 removed on every website: campaign tags (utm_* and similar), ad click identifiers (gclid, gbraid, wbraid, dclid, fbclid, msclkid, yclid and more), and the tags email marketing and analytics tools add. Wildcards catch new variants of the common families.
 • More than 450 are share and tracking identifiers specific to over 75 popular websites - video, music, social, shopping, news, travel and search - on their regional domains too.
-• Redirect links from more than 50 services, unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour. Links on search results go straight to the page when you click them, without the search engine's click tracking.
+• Some sites give every share its own randomly named identifier, so no list of names can keep up. On those sites' post pages, CleanURL keeps only the parameters the page actually uses and removes the rest.
+• Redirect links from more than 50 services, unwrapped to their destination when you copy them, so you share the page itself rather than a tracked detour.
 • Affiliate tags are left alone by default - they pay whoever shared the link - with a switch if you want to remove them too, which also unwraps affiliate network links.
 • Anything a site needs to work, such as sign-in and session parameters (code, state, token, redirect_uri) and ordinary ones (q, v, id, page), is never touched.
 
@@ -61,6 +62,7 @@ WHAT IT DOES
 
 • Cleans links before they load, on the request itself, so tracking parameters never reach the site and never appear in your address bar or history.
 • Cleans links when you copy them: share panel "Copy link" buttons, Ctrl+C over a selected link, a page's own copy button, or dragging a link.
+• Skips the click tracking on search results and maps. Links there often lead through a tracking redirect first; clicking one now takes you straight to the site, without the redirect or the click beacon. This includes a map's "Website" button. Links of that kind found anywhere else are left alone, so the search engine's own warning about suspicious redirects still protects you.
 • Adds "Copy clean link" to the right-click menu, for a link or for the page you are on.
 • Cleans the clipboard on demand. One popup button rewrites a link you've already copied - covering links copied in another browser or app, or with Chrome's own "Copy link address", which an extension cannot intercept. Chrome asks for clipboard permission the first time, and it is read only when you press the button.
 
