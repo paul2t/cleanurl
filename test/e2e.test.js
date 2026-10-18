@@ -92,6 +92,21 @@ async function main() {
     await sleep(800);
 
     /* ---- popup ------------------------------------------------------ */
+    {
+      // An affiliate click id is kept on purpose, and the popup says so.
+      const kept = await browser.open(`${site}/g?cjevent=abc&utm_source=x`);
+      await browser.send('Target.activateTarget', { targetId: kept.id });
+      await browser.sw.eval('chrome.action.openPopup()');
+      const t = await browser.waitForTarget((x) => x.url.endsWith('/src/popup.html'));
+      if (t) {
+        const p = await browser.attach(t.targetId);
+        await sleep(800);
+        const note = await p.eval("document.getElementById('affiliate').hidden ? '' : document.getElementById('affiliate').textContent");
+        ok('the popup names an affiliate tag kept on purpose, and why',
+          /Kept on purpose: cjevent. It is an affiliate tag, which pays whoever shared the link/.test(note), note);
+        await browser.send('Target.closeTarget', { targetId: t.targetId }).catch(() => {});
+      }
+    }
     const fresh = await browser.open(`${site}/d?ref_src=x&fbclid=1&q=keep`);
     await browser.send('Target.activateTarget', { targetId: fresh.id });
     await browser.sw.eval('chrome.action.openPopup()');

@@ -120,7 +120,10 @@ Right-click the toolbar icon → **Options**, or open the popup and hit
 - **Extra parameters to remove** — supports `*` wildcards
 
 The popup shows what would be stripped from the current page and offers a
-one-click clean copy.
+one-click clean copy. With **Also remove affiliate tags** off, it also names any
+affiliate tags the link keeps on purpose, and says why, so a kept `tag` or
+`cjevent` does not look like a missed tracker. The clipboard button does the
+same for the link it cleaned.
 
 At the bottom, **Source code** opens this repository and **Report an issue**
 opens a new GitHub issue with questions about the link: what was opened or

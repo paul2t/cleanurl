@@ -670,6 +670,19 @@ url('vk away.php on the bare domain',
   check('only the Google redirector is unwrapped', a.href, 'https://evil.example/url?q=https%3A%2F%2Fexample.com%2F');
 }
 
+/* What the popup names as kept on purpose when affiliate removal is off. */
+{
+  const amazon = 'https://www.amazon.fr/dp/B0D4B63WQG?tag=condenastfran-21&linkCode=sl1&utm_source=x&language=fr_FR';
+  check('affiliate tags a link keeps on purpose are named',
+    Clean.affiliateKept(amazon).join(), 'tag,linkCode');
+  check('none once affiliate removal is on',
+    Clean.affiliateKept(amazon, { removeAffiliate: true }).join(), '');
+  check('tracking and ordinary parameters are not named as affiliate',
+    Clean.affiliateKept('https://example.com/?utm_source=x&page=2').join(), '');
+  check('works on a block of text too',
+    Clean.affiliateKept('see https://shop.example/?cjevent=abc and https://example.com/').join(), 'cjevent');
+}
+
 /* The same parameters are still noise on a search results page. */
 url('google search still loses sa, usg and ved',
   'https://www.google.com/search?q=hello&sa=t&usg=abc&ved=xyz',

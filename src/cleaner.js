@@ -387,6 +387,22 @@
    *          `removed` is every parameter name dropped, in order and without
    *          repeats, so a caller can say what it actually did.
    */
+  /**
+   * The affiliate parameters `text` keeps because affiliate removal is off -
+   * left on purpose, so the popup can say so rather than look like it missed
+   * them. Those that turning it on would remove on top of everything else.
+   * Empty when it is already on.
+   */
+  function affiliateKept(text, options) {
+    const settings = Object.assign({}, DEFAULT_SETTINGS, options || {});
+    if (settings.removeAffiliate) return [];
+    const base = Object.assign({}, settings, { enabled: true });
+    const without = cleanText(String(text || ''), base).removed;
+    const withAffiliate = cleanText(String(text || ''),
+      Object.assign({}, base, { removeAffiliate: true })).removed;
+    return withAffiliate.filter((name) => without.indexOf(name) === -1);
+  }
+
   function cleanText(text, options) {
     if (typeof text !== 'string' || text.indexOf('http') === -1) {
       return { text: text, changed: false, count: 0, removed: [] };
@@ -448,6 +464,7 @@
     DEFAULT_SETTINGS: DEFAULT_SETTINGS,
     cleanUrl: cleanUrl,
     cleanText: cleanText,
+    affiliateKept: affiliateKept,
     cleanHtml: cleanHtml,
     hostMatches: hostMatches,
     isAllowlisted: isAllowlisted,

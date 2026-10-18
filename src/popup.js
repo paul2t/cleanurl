@@ -9,6 +9,8 @@
     siteName: document.getElementById('site-name'),
     siteHint: document.getElementById('site-hint'),
     status: document.getElementById('status'),
+    affiliate: document.getElementById('affiliate'),
+    clipAffiliate: document.getElementById('clip-affiliate'),
     url: document.getElementById('url'),
     copy: document.getElementById('copy'),
     options: document.getElementById('options'),
@@ -86,6 +88,27 @@
 
     el.url.hidden = !cleaned.changed;
     el.url.textContent = cleaned.url;
+
+    const kept = settings.enabled && !allowed ? Clean.affiliateKept(tab.url, settings) : [];
+    fillAffiliateNote(el.affiliate, kept);
+  }
+
+  /*
+   * With "Also remove affiliate tags" off, a link can keep a parameter that
+   * looks like tracking on purpose. Say which, and why, rather than leave it
+   * looking missed.
+   */
+  function fillAffiliateNote(box, names) {
+    box.hidden = !names || !names.length;
+    box.textContent = '';
+    if (box.hidden) return;
+    const list = document.createElement('b');
+    list.textContent = names.join(', ');
+    const many = names.length > 1;
+    box.append('Kept on purpose: ', list, '. ' +
+      (many ? 'They are affiliate tags, which pay' : 'It is an affiliate tag, which pays') +
+      ' whoever shared the link. To remove ' + (many ? 'them' : 'it') +
+      ' too, turn on "Also remove affiliate tags" in Settings.');
   }
 
   /*
@@ -205,12 +228,13 @@
     }
   });
 
-  function showClipboard(state, message, url) {
+  function showClipboard(state, message, url, keptAffiliate) {
     el.clip.hidden = false;
     el.clip.className = state;
     el.clip.textContent = message;
     el.clipUrl.hidden = !url;
     el.clipUrl.textContent = url || '';
+    fillAffiliateNote(el.clipAffiliate, keptAffiliate || []);
   }
 
   /*
@@ -273,10 +297,11 @@
 
       const result = Clean.cleanText(text, Object.assign({}, settings, { enabled: true }));
 
+      const keptAffiliate = Clean.affiliateKept(text, settings);
       if (!result.changed) {
         showClipboard('', /https?:\/\//i.test(text)
           ? 'That link is already clean.'
-          : 'No link found in the clipboard.');
+          : 'No link found in the clipboard.', '', keptAffiliate);
         return;
       }
 
@@ -291,7 +316,7 @@
       const what = result.count > 1 ? `${result.count} links` : 'Link';
       showClipboard('done',
         `${what} cleaned: removed ${result.removed.join(', ')}.`,
-        result.count === 1 ? result.text : '');
+        result.count === 1 ? result.text : '', keptAffiliate);
       chrome.runtime.sendMessage({ type: 'report', kind: 'copy', count: result.count },
         () => void chrome.runtime.lastError);
       setTimeout(renderStats, 100);
