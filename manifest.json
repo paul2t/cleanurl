@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CleanURL",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Removes 900+ tracking parameters from links before they load and from links you copy. Nothing is collected, nothing is sent.",
   "minimum_chrome_version": "116",
   "permissions": [
