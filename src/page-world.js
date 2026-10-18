@@ -312,9 +312,10 @@
         name: 'Instagram / Threads',
         hosts: ['instagram.com', 'threads.net', 'threads.com'],
         dnrDomains: ['instagram.com', 'threads.net', 'threads.com'],
-        // xtok is base64 of a short opaque id, minted per share like igsh
+        // igsh, igsi, stkn, xtok and cplk all carry the same per-share id,
+        // base64 of a short random string: Instagram keeps renaming it.
         params: ['igsh', 'igshid', 'igsi', 'xmt', 'img_index_share', 'psln',
-                 'stkn', 'xtok'],
+                 'stkn', 'xtok', 'cplk'],
       },
       {
         name: 'X / Twitter',

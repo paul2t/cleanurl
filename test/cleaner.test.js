@@ -221,6 +221,10 @@ url('instagram igsi share id',
   'https://www.instagram.com/reel/Dc1VyKvtNsZ/?igsi=MW93MGV2enp5b28zag==',
   'https://www.instagram.com/reel/Dc1VyKvtNsZ/');
 
+url('instagram cplk share id',
+  'https://www.instagram.com/reel/DecMDHFjY4o/?cplk=MTk3dmdseWl2bWM3bg==',
+  'https://www.instagram.com/reel/DecMDHFjY4o/');
+
 url('stkn is left alone off instagram',
   'https://example.com/?stkn=abc',
   'https://example.com/?stkn=abc');
